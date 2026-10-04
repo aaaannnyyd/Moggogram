@@ -1702,6 +1702,9 @@ final class RoundVideoCameraController {
         if (cameraResolution == RoundVideoSession.CameraResolution.LOW) {
             return outputResolution.getSize();
         }
+        if (outputResolution == RoundVideoSession.OutputResolution.P720) {
+            return cameraResolution == RoundVideoSession.CameraResolution.HIGH ? 1080 : 960;
+        }
         if (outputResolution == RoundVideoSession.OutputResolution.P480) {
             return cameraResolution == RoundVideoSession.CameraResolution.HIGH ? 960 : 720;
         }
