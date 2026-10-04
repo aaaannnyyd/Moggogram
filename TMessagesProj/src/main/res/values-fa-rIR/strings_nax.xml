@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="XChannel">کانال Nagram X</string>
+    <string name="XChannel">کانال Moggogram</string>
     <string name="EnableSaveDeletedMessages">نمایش پیام‌های حذف شده</string>
     <string name="DeletedMessage">حذف شده</string>
     <string name="EnableSaveEditsHistory">ذخیره تاریخچه ویرایش پیام‌ها</string>
@@ -109,7 +109,7 @@
     <string name="Other">سایر موارد</string>
     <string name="RestartApp">راه‌اندازی مجدد</string>
     <string name="ResetSettings">بازنشانی تنظیمات</string>
-    <string name="ResetSettingsAlert">آیا مطمئنید که می‌خواهید تمام تنظیمات ناگرام را بازنشانی کنید؟</string>
+    <string name="ResetSettingsAlert">آیا مطمئنید که می‌خواهید تمام تنظیمات M را بازنشانی کنید؟</string>
     <string name="DontAutoPlayNextVoice">عدم پخش خودکار پیام صوتی بعدی</string>
     <string name="SaveToChatSubfolder">ذخیره پیوست‌ها در پوشه‌ای با نام گفتگو</string>
     <string name="MessageColoredBackground">پس‌زمینه رنگی پیام‌ها</string>
@@ -117,7 +117,7 @@
     <string name="ChatMenu">منوی گفتگو</string>
     <string name="MediaViewerMenu">منوی نمایشگر رسانه</string>
     <string name="MenuAndButtons">منوها و دکمه‌ها</string>
-    <string name="SettingsNax">تنظیمات ناگرام</string>
+    <string name="SettingsNax">تنظیمات M</string>
     <string name="AccountSettingsNax">تنظیمات حساب کاربری</string>
     <string name="HideReactions">پنهان کردن واکنش‌ها</string>
     <string name="DoubleTapIncoming">پیام‌های دریافتی</string>
@@ -309,8 +309,8 @@
     <string name="BackAnimationSpring">بهار</string>
     <string name="BackAnimationPredictive">پیش‌بینی کننده</string>
     <string name="AddToFilter">اضافه کردن به فیلتر</string>
-    <string name="UnifiedPushNeverReceivedNotifications">از زمانی که ناگرام ایکس شروع به کار کرده است، شما هرگز اعلانی با UnifiedPush دریافت نکرده‌اید.</string>
-    <string name="UnifiedPushLastReceivedNotification">آخرین اعلان دریافتی با UnifiedPush مربوط به %1$d ثانیه پیش بود.\n\nشما از زمان شروع ناگرام ایکس اعلان‌های %2$d دریافت کرده‌اید.</string>
+    <string name="UnifiedPushNeverReceivedNotifications">از زمانی که Moggogram شروع به کار کرده است، شما هرگز اعلانی با UnifiedPush دریافت نکرده‌اید.</string>
+    <string name="UnifiedPushLastReceivedNotification">آخرین اعلان دریافتی با UnifiedPush مربوط به %1$d ثانیه پیش بود.\n\nشما از زمان شروع Moggogram اعلان‌های %2$d دریافت کرده‌اید.</string>
     <string name="UnifiedPushCurrentEndpoint">نقطه پایانی فعلی UnifiedPush عبارت است از: %1$s</string>
     <string name="PlayOnce">یک بار پخش</string>
     <string name="StorageSettings">فضای ذخیره‌‌سازی</string>

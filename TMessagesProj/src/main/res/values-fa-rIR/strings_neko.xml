@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="NekoSettings">تنظیمات ناگرام</string>
+    <string name="NekoSettings">تنظیمات M</string>
     <string name="IPv6">ترجیح دادن IPv6</string>
     <string name="MessageMenu">منوی پیام</string>
     <string name="HidePhone">پنهان کردن شماره تلفن</string>
@@ -70,7 +70,7 @@
     <string name="CallTo">با **%1$s** تماس گرفته شود؟</string>
     <string name="DisableNumberRounding">غیرفعال کردن گرد کردن اعداد</string>
     <string name="Categories">دسته‌بندی‌ها</string>
-    <string name="OfficialChannel">کانال رسمی ناگرام</string>
+    <string name="OfficialChannel">کانال رسمی Moggogram</string>
     <string name="About">درباره</string>
     <string name="IgnoreBlockedAbout">دیگر پیام‌های کاربران مسدود شده را در گروه‌ها نخواهید دید.</string>
     <string name="SourceCode">کد منبع</string>
@@ -151,7 +151,7 @@
     <string name="ClearRecentChats">پاک کردن گفتگوهای اخیر</string>
     <string name="ClearRecentChatAlert">آیا می‌خواهید گفتگوهای اخیر خود را پاک کنید؟</string>
     <string name="CloudConfig">تنظیمات ابری</string>
-    <string name="CloudConfigDesc">ذخیره تنظیمات ناگرام</string>
+    <string name="CloudConfigDesc">ذخیره تنظیمات M</string>
     <string name="CloudConfigSyncDate">آخرین همگام‌سازی: %s، ابر: %s</string>
     <string name="CloudConfigSyncDateNever">هرگز</string>
     <string name="CloudConfigSync">همگام‌سازی با ابر</string>
@@ -160,7 +160,7 @@
     <string name="CloudConfigRestoreShort">بازیابی</string>
     <string name="CloudConfigSyncing">در حال همگام‌سازی...</string>
     <string name="CloudConfigAutoSync">همگام‌سازی خودکار</string>
-    <string name="CloudConfigAutoSyncDesc">همگام‌سازی خودکار تنظیمات پس از هر تغییر در تنظیمات ناگرام.</string>
+    <string name="CloudConfigAutoSyncDesc">همگام‌سازی خودکار تنظیمات پس از هر تغییر در تنظیمات M.</string>
     <string name="CloudConfigSyncFailed">همگام‌سازی تنظیمات با ابر ناموفق بود.</string>
     <string name="CloudConfigRestoreFailed">بازیابی تنظیمات از ابر ناموفق بود.</string>
     <string name="CopyCallback">کپی کردن داده Callback</string>
