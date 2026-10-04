@@ -161,7 +161,8 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     private final AbstractConfigCell cameraInVideoMessages = cellGroup.appendCell(new ConfigCellSelectBox("CameraInVideoMessages", NaConfig.INSTANCE.getCameraInVideoMessages(), new String[]{
             getString(R.string.CameraInVideoMessagesFront),
             getString(R.string.CameraInVideoMessagesRear),
-            getString(R.string.CameraInVideoMessagesAsk)
+            getString(R.string.CameraInVideoMessagesAsk),
+            getString(R.string.CameraInVideoMessagesLast)
     }, null));
     private final AbstractConfigCell dividerCamera = cellGroup.appendCell(new ConfigCellDivider());
 

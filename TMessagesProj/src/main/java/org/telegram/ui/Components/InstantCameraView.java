@@ -746,7 +746,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         selectedCamera = null;
         if (!fromPaused) {
             int cameraMode = NaConfig.INSTANCE.getCameraInVideoMessages().Int();
-            if (cameraMode != 2) {
+            if (cameraMode == 0 || cameraMode == 1) {
                 isFrontface = (cameraMode == 0); // 0 = front, 1 = rear
                 initialCameraFront = isFrontface;
             }

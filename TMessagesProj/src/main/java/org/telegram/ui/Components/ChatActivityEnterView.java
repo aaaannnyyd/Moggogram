@@ -978,7 +978,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                         proceedWithVideoRecording();
                     });
                     return;
-                } else if (cameraMode != 2) {
+                } else if (cameraMode == 0 || cameraMode == 1) {
                     pendingCameraFront = (cameraMode == 0);
                 }
             }

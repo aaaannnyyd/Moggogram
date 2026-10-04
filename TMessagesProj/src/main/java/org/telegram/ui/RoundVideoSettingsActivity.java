@@ -40,14 +40,22 @@ public class RoundVideoSettingsActivity extends BaseFragment {
     private static final int ROW_BITRATE = 5;
     private static final int ROW_GENERAL_INFO = 6;
     private static final int ROW_CONTROLS_HEADER = 7;
-    private static final int ROW_CONTROLS = 8;
-    private static final int ROW_DEFAULT_LENS = 9;
-    private static final int ROW_RESET_ZOOM = 10;
-    private static final int ROW_CONTROLS_INFO = 11;
-    private static final int ROW_COMPOSITION_HEADER = 12;
-    private static final int ROW_COMPOSITION = 13;
-    private static final int ROW_COMPOSITION_INFO = 14;
-    private static final int ROW_COUNT = BuildConfig.DEBUG_PRIVATE_VERSION ? 15 : 12;
+    private static final int ROW_START_CAMERA = 8;
+    private static final int ROW_CONTROLS = 9;
+    private static final int ROW_DEFAULT_LENS = 10;
+    private static final int ROW_RESET_ZOOM = 11;
+    private static final int ROW_CONTROLS_INFO = 12;
+    private static final int ROW_COMPOSITION_HEADER = 13;
+    private static final int ROW_COMPOSITION = 14;
+    private static final int ROW_COMPOSITION_INFO = 15;
+    private static final int ROW_COUNT = BuildConfig.DEBUG_PRIVATE_VERSION ? 16 : 13;
+
+    private static final int[] START_CAMERA_TITLES = {
+            R.string.CameraInVideoMessagesFront,
+            R.string.CameraInVideoMessagesRear,
+            R.string.CameraInVideoMessagesAsk,
+            R.string.CameraInVideoMessagesLast
+    };
 
     private static final int[] BITRATES = {
             750_000,
@@ -95,6 +103,16 @@ public class RoundVideoSettingsActivity extends BaseFragment {
     }
 
     private void onRowClicked(int position) {
+        if (position == ROW_START_CAMERA) {
+            CharSequence[] labels = new CharSequence[START_CAMERA_TITLES.length];
+            for (int i = 0; i < labels.length; i++) labels[i] = LocaleController.getString(START_CAMERA_TITLES[i]);
+            showChoice(
+                    R.string.MoggoRoundStartCamera,
+                    labels,
+                    index -> xyz.nextalone.nagram.NaConfig.INSTANCE.getCameraInVideoMessages().setConfigInt(index)
+            );
+            return;
+        }
         if (position == ROW_ENABLED) {
             SharedSettings.roundVideoCamera2Enabled.set(!SharedSettings.roundVideoCamera2Enabled.get());
             adapter.notifyDataSetChanged();
@@ -246,7 +264,7 @@ public class RoundVideoSettingsActivity extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            if (position == ROW_ENABLED) {
+            if (position == ROW_ENABLED || position == ROW_START_CAMERA) {
                 return true;
             }
             if (!SharedSettings.roundVideoCamera2Enabled.get()) {
@@ -337,6 +355,14 @@ public class RoundVideoSettingsActivity extends BaseFragment {
                     cell.setTextAndValue(
                             LocaleController.getString(R.string.RoundVideoFrameRate),
                             SharedSettings.roundVideoFrameRate.get().getValue() + " FPS",
+                            true
+                    );
+                } else if (position == ROW_START_CAMERA) {
+                    cell.setEnabled(true);
+                    int mode = xyz.nextalone.nagram.NaConfig.INSTANCE.getCameraInVideoMessages().Int();
+                    cell.setTextAndValue(
+                            LocaleController.getString(R.string.MoggoRoundStartCamera),
+                            LocaleController.getString(START_CAMERA_TITLES[Math.max(0, Math.min(START_CAMERA_TITLES.length - 1, mode))]),
                             true
                     );
                 } else if (position == ROW_CONTROLS) {

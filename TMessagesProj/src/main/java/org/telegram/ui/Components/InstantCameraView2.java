@@ -132,6 +132,8 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
     private float selectedLensRatio = 1f;
     private float pinchStartRatio = 1f;
     private boolean zoomControlShown;
+    // camera picked by "Camera in video messages" (front / rear / ask) for the next recording
+    private RoundVideoSession.CameraFacing pendingFacing;
 
     private final Runnable recordingUiFallback = () -> {
         if (!isRecordingState()) return;
@@ -293,6 +295,11 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
     }
 
     @Override
+    public void setUseFrontCamera(boolean useFront) {
+        pendingFacing = useFront ? RoundVideoSession.CameraFacing.FRONT : RoundVideoSession.CameraFacing.BACK;
+    }
+
+    @Override
     public void setButtonsBackground(
             BlurredBackgroundDrawableViewFactory factory,
             BlurredBackgroundColorProvider colorProvider
@@ -393,7 +400,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
         activeOutputResolution = SharedSettings.roundVideoOutputResolution.get();
         session = new RoundVideoSession.Builder(getContext(), textureView)
                 .setOutputDirectory(new File(ApplicationLoader.getFilesDirFixed(), "cache"))
-                .setInitialFacing(SharedSettings.roundVideoLastCamera.get())
+                .setInitialFacing(pendingFacing != null ? pendingFacing : SharedSettings.roundVideoLastCamera.get())
                 .setOutputResolution(activeOutputResolution)
                 .setVideoBitrate(SharedSettings.roundVideoVideoBitrate.get())
                 .setCameraResolution(SharedSettings.roundVideoCameraResolution.get())
@@ -404,6 +411,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
                 .setScreenFlashController(this::setScreenFlashEnabled)
                 .build();
         MediaController.getInstance().requestRecordAudioFocus(true);
+        pendingFacing = null;
         session.start();
         startAnimation(true, fromPaused);
     }
@@ -1024,13 +1032,13 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
                 .start();
     }
 
-    // Below the circle when there is room above the bottom buttons, otherwise above it.
+    // At the bottom of the screen, right above the flip / flash buttons; never over the circle.
     private float zoomControlOffset() {
         int circle = cameraContainer.getLayoutParams().height;
         int area = getMeasuredHeight() - getPaddingBottom();
-        float below = circle / 2f + dp(34);
-        float bottom = area / 2f + below + dp(30);
-        return bottom <= area - dp(60) ? below : -below;
+        float atBottom = area / 2f - dp(56 + 4 + 30);
+        float belowCircle = circle / 2f + dp(34);
+        return Math.max(atBottom, belowCircle);
     }
 
     private void togglePreviewMuted() {

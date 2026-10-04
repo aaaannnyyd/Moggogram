@@ -388,4 +388,6 @@
     <string name="MoggoDownloadDone">Saved: %1$d</string>
     <string name="MoggoDownloadFailed">Failed: %1$d</string>
     <string name="MoggoFloatingPlayer">Floating player over other apps</string>
+    <string name="CameraInVideoMessagesLast">Last used</string>
+    <string name="MoggoRoundStartCamera">Start with camera</string>
 </resources>

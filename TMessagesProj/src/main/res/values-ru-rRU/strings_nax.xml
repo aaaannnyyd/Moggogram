@@ -386,4 +386,6 @@
     <string name="MoggoDownloadDone">Сохранено: %1$d</string>
     <string name="MoggoDownloadFailed">Не удалось: %1$d</string>
     <string name="MoggoFloatingPlayer">Плавающий плеер поверх приложений</string>
+    <string name="CameraInVideoMessagesLast">Последняя использованная</string>
+    <string name="MoggoRoundStartCamera">Камера при старте</string>
 </resources>
