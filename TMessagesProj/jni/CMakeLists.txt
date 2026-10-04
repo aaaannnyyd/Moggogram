@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_CXX_FLAGS "-std=c++14 -DANDROID -g")
 set(CMAKE_C_FLAGS "-w -std=c11 -DANDROID -D_LARGEFILE_SOURCE=1 -g -Wno-error=implicit-function-declaration")
@@ -13,44 +13,59 @@ else()
     enable_language(ASM_NASM)
 endif()
 
+set(CAN_COMPILE_SME FALSE CACHE INTERNAL "Disable libyuv SME" FORCE)
+add_subdirectory(
+        third_party/libyuv
+        ${CMAKE_CURRENT_BINARY_DIR}/libyuv
+        EXCLUDE_FROM_ALL)
+
 add_library(avutil STATIC IMPORTED)
-set_target_properties(avutil PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libavutil.a)
+set_target_properties(avutil PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libavutil.a)
 
 add_library(avformat STATIC IMPORTED)
-set_target_properties(avformat PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libavformat.a)
+set_target_properties(avformat PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libavformat.a)
 
 add_library(avcodec STATIC IMPORTED)
-set_target_properties(avcodec PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libavcodec.a)
+set_target_properties(avcodec PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libavcodec.a)
 
 add_library(swresample STATIC IMPORTED)
-set_target_properties(swresample PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libswresample.a)
+set_target_properties(swresample PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libswresample.a)
 
 add_library(swscale STATIC IMPORTED)
-set_target_properties(swscale PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libswscale.a)
+set_target_properties(swscale PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libswscale.a)
 
 add_library(crypto STATIC IMPORTED)
-set_target_properties(crypto PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/boringssl/lib/${ANDROID_ABI}/libcrypto.a)
+set_target_properties(crypto PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libcrypto.a)
 
 add_library(ssl STATIC IMPORTED)
-set_target_properties(ssl PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/boringssl/lib/${ANDROID_ABI}/libssl.a)
+set_target_properties(ssl PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libssl.a)
+
+
+#aesige
+#add_library(aesige STATIC openssl/aes_ige.c)
+#target_compile_options(aesige PUBLIC -Wall -frtti -finline-functions -ffast-math -Oz)
+#target_include_directories(aesige PUBLIC third_party/boringssl/include openssl/include)
+#target_link_libraries(aesige crypto)
+
 
 add_library(libvpx STATIC IMPORTED)
-set_target_properties(libvpx PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libvpx.a)
+set_target_properties(libvpx PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libvpx.a)
 
 add_library(libdav1d STATIC IMPORTED)
-set_target_properties(libdav1d PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libdav1d.a)
+set_target_properties(libdav1d PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libdav1d.a)
 
 add_library(libopus STATIC IMPORTED)
-set_target_properties(libopus PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libopus.a)
+set_target_properties(libopus PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libopus.a)
 
 add_library(tde2e STATIC IMPORTED)
-set_target_properties(tde2e PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/tde2e/${ANDROID_ABI}/libtde2e.a)
+set_target_properties(tde2e PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libtde2e.a)
 
 add_library(tdutils STATIC IMPORTED)
-set_target_properties(tdutils PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/tde2e/${ANDROID_ABI}/libtdutils.a)
+set_target_properties(tdutils PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libtdutils.a)
 
 #tgnet
 add_library(tgnet STATIC
+        openssl/aes_ige.c
         tgnet/ApiScheme.cpp
         tgnet/BuffersStorage.cpp
         tgnet/ByteArray.cpp
@@ -58,6 +73,7 @@ add_library(tgnet STATIC
         tgnet/Connection.cpp
         tgnet/ConnectionSession.cpp
         tgnet/ConnectionsManager.cpp
+        tgnet/TLSHello.cpp
         tgnet/ConnectionSocket.cpp
         tgnet/Datacenter.cpp
         tgnet/EventObject.cpp
@@ -77,14 +93,15 @@ set_target_properties(tgnet PROPERTIES
 target_compile_definitions(tgnet PUBLIC
         HAVE_PTHREAD)
 target_include_directories(tgnet PUBLIC
-        boringssl/include/)
+        third_party/boringssl/include
+        openssl/include)
 target_link_libraries(tgnet
         crypto)
 
 # tlottie (prebuilt Rust static library)
 add_library(tlottie STATIC IMPORTED)
 set_target_properties(tlottie PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/tlottie_lib/${ANDROID_ABI}/libtlottie.a)
+        IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libtlottie.a)
 
 #sqlite
 add_library(sqlite STATIC
@@ -118,11 +135,12 @@ add_library(${NATIVE_LIB} SHARED
         gifvideo.cpp
         lottie.cpp
         TgNetWrapper.cpp
-        exoplayer/ffmpeg_jni.cc
+        ffmpeg_jni.cc
         fast-edge.cpp
         genann.c
         secureid_ocr.cpp
         tde2e/bridge.cpp
+        tests.cpp
 )
 
 target_compile_options(${NATIVE_LIB} PUBLIC
@@ -131,32 +149,6 @@ target_compile_options(${NATIVE_LIB} PUBLIC
 target_compile_definitions(${NATIVE_LIB} PUBLIC
         BSD=1 NULL=0 SOCKLEN_T=socklen_t ANDROID_NDK DISABLE_IMPORTGL AVOID_TABLES ANDROID_TILE_BASED_DECODE __STDC_CONSTANT_MACROS ANDROID_ARMV6_IDCT OPUS_BUILD FIXED_POINT USE_ALLOCA restrict= __EMX__ LOCALE_NOT_USED HAVE_LRINT HAVE_LRINTF)
 
-if (${ANDROID_ABI} STREQUAL "armeabi-v7a")
-    set_target_properties(${NATIVE_LIB} PROPERTIES
-            ANDROID_ARM_NEON FALSE
-            ANDROID_ARM_MODE arm)
-    target_compile_definitions(${NATIVE_LIB} PUBLIC
-            ANDROID_ARM_NEON=false)
-    target_sources(${NATIVE_LIB} PRIVATE
-        third_party/libyuv/source/compare_neon.cc
-        third_party/libyuv/source/rotate_neon.cc
-        third_party/libyuv/source/row_neon.cc
-        third_party/libyuv/source/scale_neon.cc)
-else()
-    set_target_properties(${NATIVE_LIB} PROPERTIES
-            ANDROID_ARM_NEON FALSE
-            ANDROID_ARM_MODE arm)
-endif()
-
-if (${ANDROID_ABI} STREQUAL "armeabi-v7a" OR ${ANDROID_ABI} STREQUAL "arm64-v8a")
-    target_compile_definitions(${NATIVE_LIB} PUBLIC
-            LIBYUV_NEON)
-
-elseif(${ANDROID_ABI} STREQUAL "x86")
-    target_compile_definitions(${NATIVE_LIB} PUBLIC
-            x86fix)
-endif()
-
 target_sources(${NATIVE_LIB} PRIVATE
 
         third_party/xiph/opusfile/src/info.c
@@ -164,49 +156,7 @@ target_sources(${NATIVE_LIB} PRIVATE
         third_party/xiph/opusfile/src/opusfile.c
         third_party/xiph/opusfile/src/stream.c
         third_party/xiph/ogg/src/bitwise.c
-        third_party/xiph/ogg/src/framing.c
-        third_party/libyuv/source/compare_common.cc
-        third_party/libyuv/source/compare_gcc.cc
-        third_party/libyuv/source/compare_neon64.cc
-        third_party/libyuv/source/compare_win.cc
-        third_party/libyuv/source/compare.cc
-        third_party/libyuv/source/convert_argb.cc
-        third_party/libyuv/source/convert_from_argb.cc
-        third_party/libyuv/source/convert_from.cc
-        third_party/libyuv/source/convert_jpeg.cc
-        third_party/libyuv/source/convert_to_argb.cc
-        third_party/libyuv/source/convert_to_i420.cc
-        third_party/libyuv/source/convert.cc
-        third_party/libyuv/source/cpu_id.cc
-        third_party/libyuv/source/mjpeg_decoder.cc
-        third_party/libyuv/source/mjpeg_validate.cc
-        third_party/libyuv/source/planar_functions.cc
-        third_party/libyuv/source/rotate_any.cc
-        third_party/libyuv/source/rotate_argb.cc
-        third_party/libyuv/source/rotate_common.cc
-        third_party/libyuv/source/rotate_gcc.cc
-        third_party/libyuv/source/rotate_neon64.cc
-        third_party/libyuv/source/rotate_win.cc
-        third_party/libyuv/source/rotate.cc
-        third_party/libyuv/source/row_any.cc
-        third_party/libyuv/source/row_common.cc
-        third_party/libyuv/source/row_gcc.cc
-        third_party/libyuv/source/row_neon64.cc
-        third_party/libyuv/source/row_win.cc
-        third_party/libyuv/source/scale_any.cc
-        third_party/libyuv/source/scale_argb.cc
-        third_party/libyuv/source/scale_common.cc
-        third_party/libyuv/source/scale_gcc.cc
-        third_party/libyuv/source/scale_neon64.cc
-        third_party/libyuv/source/scale_win.cc
-        third_party/libyuv/source/scale.cc
-        third_party/libyuv/source/video_common.cc
-        third_party/libyuv/source/scale_uv.cc
-        third_party/libyuv/source/rotate_lsx.cc
-        third_party/libyuv/source/row_lasx.cc
-        third_party/libyuv/source/row_lsx.cc
-        third_party/libyuv/source/scale_lsx.cc
-        third_party/libyuv/source/scale_rgb.cc)
+        third_party/xiph/ogg/src/framing.c)
 
 target_include_directories(${NATIVE_LIB} PUBLIC
         third_party/xiph/opus/include
@@ -217,15 +167,20 @@ target_include_directories(${NATIVE_LIB} PUBLIC
         third_party/xiph/opusfile/include
         third_party/xiph/ogg/include
         third_party/libyuv/include
-        boringssl/include
-        ffmpeg/include
+        third_party/boringssl/include
+        openssl/include
+        prebuild/include/${ANDROID_ABI}
+        third_party/ffmpeg
+        third_party/libvpx
+        third_party/dav1d/include
         emoji
         exoplayer/include
         intro
         tlottie/include
         tgcalls/
         webrtc/
-        tde2e/include
+        td/tde2e
+        td/tde2e/td/e2e
 )
 
 target_link_options(${NATIVE_LIB} PRIVATE "-Wl,-z,max-page-size=16384")
@@ -233,7 +188,6 @@ target_link_options(${NATIVE_LIB} PRIVATE "-Wl,-z,common-page-size=16384")
 target_link_options(${NATIVE_LIB} PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/exports.map")
 target_link_libraries(${NATIVE_LIB}
         -Wl,--whole-archive rnnoise openh264 voipandroid -Wl,--no-whole-archive
-        tgvoip
         tgcalls
         tgcalls_tp
         tgnet
@@ -248,6 +202,7 @@ target_link_libraries(${NATIVE_LIB}
         libopus
         tde2e
         tdutils
+        yuv
         avutil
         ssl
         crypto

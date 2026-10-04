@@ -1,0 +1,37 @@
+From 9f11505286dd784df469324025af79bebdb3b698 Mon Sep 17 00:00:00 2001
+From: temporaryna <temhbiumulllka@gmail.com>
+Date: Mon, 21 Sep 2026 03:48:00 +0300
+Subject: [PATCH] drop legacy kotlin-android apply for AGP9 built-in Kotlin
+
+---
+ libraries/common_ktx/build.gradle | 1 -
+ libraries/ui_compose/build.gradle | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/libraries/common_ktx/build.gradle b/libraries/common_ktx/build.gradle
+index c9523dfb9a..dbc8ed50dc 100644
+--- a/libraries/common_ktx/build.gradle
++++ b/libraries/common_ktx/build.gradle
+@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+ 
+ 
+ apply from: "$gradle.ext.androidxMediaSettingsDir/common_library_config.gradle"
+-apply plugin: 'kotlin-android'
+ 
+ android {
+     namespace 'androidx.media3.common.ktx'
+diff --git a/libraries/ui_compose/build.gradle b/libraries/ui_compose/build.gradle
+index 154d23423f..a16a676d72 100644
+--- a/libraries/ui_compose/build.gradle
++++ b/libraries/ui_compose/build.gradle
+@@ -15,7 +15,6 @@
+ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+ 
+ apply from: "$gradle.ext.androidxMediaSettingsDir/common_library_config.gradle"
+-apply plugin: 'kotlin-android'
+ apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+ 
+ android {
+-- 
+2.50.1 (Apple Git-155)
+

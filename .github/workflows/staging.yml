@@ -35,6 +35,8 @@ jobs:
         with:
           fetch-depth: 1
           submodules: recursive
+      - name: Apply media submodule patch
+        run: git -C TMessagesProj_Modules/media apply "$GITHUB_WORKSPACE/docs/patches/0001-drop-legacy-kotlin-android-apply-for-AGP9-built-in-K.patch"
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:

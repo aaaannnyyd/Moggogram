@@ -307,8 +307,10 @@ object ProxyUtil {
 
                 if (line.startsWith("tg://proxy") ||
                     line.startsWith("tg://socks") ||
+                    line.startsWith("tg://webproxy") ||
                     line.startsWith("https://t.me/proxy") ||
-                    line.startsWith("https://t.me/socks")) {
+                    line.startsWith("https://t.me/socks") ||
+                    line.startsWith("https://t.me/webproxy")) {
 
                     runCatching { proxies.add(SharedConfig.ProxyInfo.fromUrl(line)) }.onFailure {
 
@@ -334,8 +336,10 @@ object ProxyUtil {
 
                         if (line.startsWith("tg://proxy") ||
                             line.startsWith("tg://socks") ||
+                            line.startsWith("tg://webproxy") ||
                             line.startsWith("https://t.me/proxy") ||
-                            line.startsWith("https://t.me/socks")) {
+                            line.startsWith("https://t.me/socks") ||
+                            line.startsWith("https://t.me/webproxy")) {
 
                             runCatching { proxies.add(SharedConfig.ProxyInfo.fromUrl(line)) }.onFailure {
 
@@ -363,7 +367,7 @@ object ProxyUtil {
 
         } else if (!error) {
 
-            AlertUtil.showSimpleAlert(ctx, getString(R.string.ImportedProxies) + "\n\n" + proxies.joinToString("\n") { it.address })
+            AlertUtil.showSimpleAlert(ctx, getString(R.string.ImportedProxies) + "\n\n" + proxies.joinToString("\n") { it.settings.address })
 
         }
 
