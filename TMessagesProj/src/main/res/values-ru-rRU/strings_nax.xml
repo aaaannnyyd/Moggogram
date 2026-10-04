@@ -365,4 +365,25 @@
     <string name="MoggoRoundLensTele">Телевик</string>
     <string name="MoggoRoundResetZoom">Сбрасывать зум после щипка</string>
     <string name="MoggoRoundControlsInfo">Нажмите на объектив под кружком, чтобы переключить его, или ведите пальцем вбок для плавного зума. Объективы, которые телефон скрывает от приложений, недоступны. «Как в Telegram» — стандартная камера кружков.</string>
+    <string name="MoggoDownloadMedia">Скачать медиа</string>
+    <string name="MoggoDownloadPeriod">Период</string>
+    <string name="MoggoDownloadTypes">Что скачать</string>
+    <string name="MoggoPeriodDay">За сутки</string>
+    <string name="MoggoPeriodWeek">За неделю</string>
+    <string name="MoggoPeriodMonth">За месяц</string>
+    <string name="MoggoPeriodYear">За год</string>
+    <string name="MoggoPeriodAll">За всё время</string>
+    <string name="MoggoTypePhotos">Фото</string>
+    <string name="MoggoTypeVideos">Видео</string>
+    <string name="MoggoTypeFiles">Файлы</string>
+    <string name="MoggoTypeVoice">Голосовые и кружки</string>
+    <string name="MoggoTypeMusic">Музыка</string>
+    <string name="MoggoDownloadFind">Найти</string>
+    <string name="MoggoDownloadStart">Скачать</string>
+    <string name="MoggoDownloadNothing">За этот период ничего не найдено.</string>
+    <string name="MoggoDownloadFound">Найдено файлов: %1$d, %2$s. Фото и видео попадут в галерею, остальное — в «Загрузки».</string>
+    <string name="MoggoDownloadLimit">Берутся только последние %1$d файлов.</string>
+    <string name="MoggoDownloadDone">Сохранено: %1$d</string>
+    <string name="MoggoDownloadFailed">Не удалось: %1$d</string>
+    <string name="MoggoFloatingPlayer">Плавающий плеер поверх приложений</string>
 </resources>

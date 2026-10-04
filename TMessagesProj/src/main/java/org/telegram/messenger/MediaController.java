@@ -3242,7 +3242,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 if (currentAspectRatioFrameLayout.getParent() == null) {
                     currentTextureViewContainer.addView(currentAspectRatioFrameLayout);
                 }
-                videoPlayer.setTextureView(currentTextureView);
+                videoPlayer.setTextureView(floatingOr(currentTextureView));
             }
         } else {
             if (currentAspectRatioFrameLayout.getParent() != null) {
@@ -3258,8 +3258,37 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                     }
                 }
                 if (pipRoundVideoView != null) {
-                    videoPlayer.setTextureView(pipRoundVideoView.getTextureView());
+                    videoPlayer.setTextureView(floatingOr(pipRoundVideoView.getTextureView()));
                 }
+            }
+        }
+    }
+
+    // Moggogram: floating player over other apps takes the round video surface while it is shown
+    private TextureView floatingTextureView;
+
+    private TextureView floatingOr(TextureView textureView) {
+        return floatingTextureView != null ? floatingTextureView : textureView;
+    }
+
+    public boolean attachFloatingTextureView(TextureView textureView) {
+        if (videoPlayer == null || playingMessageObject == null || !playingMessageObject.isRoundVideo()) {
+            return false;
+        }
+        floatingTextureView = textureView;
+        videoPlayer.setTextureView(textureView);
+        return true;
+    }
+
+    public void detachFloatingTextureView(TextureView textureView) {
+        if (floatingTextureView != textureView) {
+            return;
+        }
+        floatingTextureView = null;
+        if (videoPlayer != null) {
+            TextureView target = pipRoundVideoView != null ? pipRoundVideoView.getTextureView() : currentTextureView;
+            if (target != null) {
+                videoPlayer.setTextureView(target);
             }
         }
     }
@@ -3293,9 +3322,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             }
         }
         if (pipRoundVideoView != null) {
-            videoPlayer.setTextureView(pipRoundVideoView.getTextureView());
+            videoPlayer.setTextureView(floatingOr(pipRoundVideoView.getTextureView()));
         } else {
-            videoPlayer.setTextureView(currentTextureView);
+            videoPlayer.setTextureView(floatingOr(currentTextureView));
         }
         currentAspectRatioFrameLayout = aspectRatioFrameLayout;
         currentTextureViewContainer = container;
@@ -3484,7 +3513,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                         if (currentTextureView.getSurfaceTexture() != surfaceTexture) {
                             currentTextureView.setSurfaceTexture(surfaceTexture);
                         }
-                        videoPlayer.setTextureView(currentTextureView);
+                        videoPlayer.setTextureView(floatingOr(currentTextureView));
                     }
                     pipSwitchingState = 0;
                     return true;
@@ -3502,7 +3531,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                             if (pipRoundVideoView.getTextureView().getSurfaceTexture() != surfaceTexture) {
                                 pipRoundVideoView.getTextureView().setSurfaceTexture(surfaceTexture);
                             }
-                            videoPlayer.setTextureView(pipRoundVideoView.getTextureView());
+                            videoPlayer.setTextureView(floatingOr(pipRoundVideoView.getTextureView()));
                         }
                     }
                     pipSwitchingState = 0;
@@ -3516,7 +3545,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         });
         currentAspectRatioFrameLayoutReady = false;
         if (currentTextureView != null) {
-            videoPlayer.setTextureView(currentTextureView);
+            videoPlayer.setTextureView(floatingOr(currentTextureView));
         }
 
         checkAudioFocus(messageObject);
@@ -3830,7 +3859,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                             if (currentTextureView.getSurfaceTexture() != surfaceTexture) {
                                 currentTextureView.setSurfaceTexture(surfaceTexture);
                             }
-                            videoPlayer.setTextureView(currentTextureView);
+                            videoPlayer.setTextureView(floatingOr(currentTextureView));
                         }
                         pipSwitchingState = 0;
                         return true;
@@ -3848,7 +3877,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                                 if (pipRoundVideoView.getTextureView().getSurfaceTexture() != surfaceTexture) {
                                     pipRoundVideoView.getTextureView().setSurfaceTexture(surfaceTexture);
                                 }
-                                videoPlayer.setTextureView(pipRoundVideoView.getTextureView());
+                                videoPlayer.setTextureView(floatingOr(pipRoundVideoView.getTextureView()));
                             }
                         }
                         pipSwitchingState = 0;
@@ -3871,10 +3900,10 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                     }
                 }
                 if (pipRoundVideoView != null) {
-                    videoPlayer.setTextureView(pipRoundVideoView.getTextureView());
+                    videoPlayer.setTextureView(floatingOr(pipRoundVideoView.getTextureView()));
                 }
             } else if (currentTextureView != null) {
-                videoPlayer.setTextureView(currentTextureView);
+                videoPlayer.setTextureView(floatingOr(currentTextureView));
             }
 
             if (exists) {
@@ -5843,7 +5872,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 "<?xpacket end=\"w\"?>";
     }
 
-    private static Uri saveFileInternal(int type, File sourceFile, String filename, MessageObject messageObject) {
+    public static Uri saveFileInternal(int type, File sourceFile, String filename, MessageObject messageObject) {
         try {
             int selectedType = type;
             ContentValues contentValues = new ContentValues();

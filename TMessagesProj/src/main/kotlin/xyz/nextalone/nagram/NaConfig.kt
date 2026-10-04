@@ -984,6 +984,12 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
+    val moggoFloatingPlayer =
+        addConfig(
+            "MoggoFloatingPlayer",
+            ConfigItem.configTypeBool,
+            false
+        )
     val chatMenuItemViewDeleted =
         addConfig(
             "ChatMenuItemViewDeleted",

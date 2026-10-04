@@ -367,4 +367,25 @@
     <string name="MoggoRoundLensTele">Telephoto</string>
     <string name="MoggoRoundResetZoom">Reset zoom after pinch</string>
     <string name="MoggoRoundControlsInfo">Tap a lens under the circle to switch it, or drag sideways for smooth zoom. Lenses the phone hides from apps are not available. "Like Telegram" keeps the stock round video camera.</string>
+    <string name="MoggoDownloadMedia">Download media</string>
+    <string name="MoggoDownloadPeriod">Period</string>
+    <string name="MoggoDownloadTypes">What to download</string>
+    <string name="MoggoPeriodDay">Last 24 hours</string>
+    <string name="MoggoPeriodWeek">Last 7 days</string>
+    <string name="MoggoPeriodMonth">Last 30 days</string>
+    <string name="MoggoPeriodYear">Last year</string>
+    <string name="MoggoPeriodAll">All time</string>
+    <string name="MoggoTypePhotos">Photos</string>
+    <string name="MoggoTypeVideos">Videos</string>
+    <string name="MoggoTypeFiles">Files</string>
+    <string name="MoggoTypeVoice">Voice and video messages</string>
+    <string name="MoggoTypeMusic">Music</string>
+    <string name="MoggoDownloadFind">Find</string>
+    <string name="MoggoDownloadStart">Download</string>
+    <string name="MoggoDownloadNothing">Nothing found for this period.</string>
+    <string name="MoggoDownloadFound">Found %1$d files, %2$s. Photos and videos go to the gallery, the rest to Downloads.</string>
+    <string name="MoggoDownloadLimit">Only the newest %1$d files are taken.</string>
+    <string name="MoggoDownloadDone">Saved: %1$d</string>
+    <string name="MoggoDownloadFailed">Failed: %1$d</string>
+    <string name="MoggoFloatingPlayer">Floating player over other apps</string>
 </resources>
