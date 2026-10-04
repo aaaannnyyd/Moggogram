@@ -33,8 +33,8 @@ public final class RoundVideoSession {
 
     /** Square resolution written by the video encoder. */
     public enum OutputResolution {
-        /** 720 x 720 output (Moggogram). */
-        P720(720),
+        /** 640 x 640 output (Moggogram): the largest size the server still keeps as a round message. */
+        P640(640),
         /** 480 x 480 output. */
         P480(480),
         /** 360 x 360 output. */

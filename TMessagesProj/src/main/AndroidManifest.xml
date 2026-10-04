@@ -110,13 +110,13 @@
         android:restoreAnyVersion="true"
         android:backupAgent=".BackupAgent"
         android:hardwareAccelerated="true"
-        android:icon="@mipmap/ic_launcher_nagram_blue"
+        android:icon="@mipmap/ic_launcher_moggogram"
         android:label="@string/NagramX"
         android:largeHeap="true"
         android:theme="@style/Theme.TMessages.Start"
         android:manageSpaceActivity="org.telegram.ui.ExternalActionActivity"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:roundIcon="@mipmap/ic_launcher_nagram_blue_round"
+        android:roundIcon="@mipmap/ic_launcher_moggogram_round"
         android:supportsRtl="false"
         android:requestLegacyExternalStorage="true"
         android:hasFragileUserData="true"
@@ -127,6 +127,22 @@
         android:enableOnBackInvokedCallback="true"
     >
         <!-- usesCleartextTraffic for browser supporting opening http:// links -->
+
+        <activity-alias
+            android:enabled="true"
+            android:name="org.telegram.messenger.MoggogramIcon"
+            android:targetActivity="org.telegram.ui.LaunchActivity"
+            android:icon="@mipmap/ic_launcher_moggogram"
+            android:roundIcon="@mipmap/ic_launcher_moggogram_round"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
 
         <activity-alias
             android:enabled="false"
@@ -225,7 +241,7 @@
         </activity-alias>
 
         <activity-alias
-            android:enabled="true"
+            android:enabled="false"
             android:name="org.telegram.messenger.BlueIcon"
             android:targetActivity="org.telegram.ui.LaunchActivity"
             android:icon="@mipmap/ic_launcher_nagram_blue"

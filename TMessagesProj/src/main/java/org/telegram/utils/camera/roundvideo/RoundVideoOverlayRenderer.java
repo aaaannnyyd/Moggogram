@@ -59,7 +59,7 @@ final class RoundVideoOverlayRenderer {
 
     private static WatermarkAtlas cachedWatermark360;
     private static WatermarkAtlas cachedWatermark480;
-    private static WatermarkAtlas cachedWatermark720;
+    private static WatermarkAtlas cachedWatermark640;
 
     private static final String TEXTURE_VERTEX_SHADER =
             "attribute vec4 aPosition;\n" +
@@ -973,7 +973,7 @@ final class RoundVideoOverlayRenderer {
         WatermarkAtlas cached = outputSize == 360
                 ? cachedWatermark360
                 : outputSize == 480 ? cachedWatermark480
-                : outputSize == 720 ? cachedWatermark720 : null;
+                : outputSize == 640 ? cachedWatermark640 : null;
         if (cached != null) return cached;
 
         int textSize = Math.round(outputSize * 372f / 1536f);
@@ -1031,7 +1031,7 @@ final class RoundVideoOverlayRenderer {
         lottie.recycle();
         if (outputSize == 360) cachedWatermark360 = result;
         else if (outputSize == 480) cachedWatermark480 = result;
-        else if (outputSize == 720) cachedWatermark720 = result;
+        else if (outputSize == 640) cachedWatermark640 = result;
         return result;
     }
 

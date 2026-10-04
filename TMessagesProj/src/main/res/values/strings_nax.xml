@@ -356,4 +356,5 @@
     <string name="ForceFontWeightFallback">Force Font Weight Fallback</string>
     <string name="MoggoReleasesChannel">Releases channel</string>
     <string name="MoggoForkOf">Fork of Nagram X</string>
+    <string name="AppIconMoggogram" translatable="false">Moggogram</string>
 </resources>

@@ -101,7 +101,7 @@ public class RoundVideoSettingsActivity extends BaseFragment {
         if (position == ROW_OUTPUT_RESOLUTION) {
             showChoice(
                     R.string.RoundVideoOutputResolution,
-                    new CharSequence[]{"720p", "480p", "360p"},
+                    new CharSequence[]{"640p", "480p", "360p"},
                     index -> SharedSettings.roundVideoOutputResolution.set(
                             RoundVideoSession.OutputResolution.values()[index]
                     )
