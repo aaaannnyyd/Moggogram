@@ -4010,6 +4010,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         }
     }
 
+    @Override
     public void setUseFrontCamera(boolean useFront) {
         this.isFrontface = useFront;
         this.initialCameraFront = useFront;

@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import xyz.nextalone.nagram.NaConfig;
 
@@ -26,6 +27,13 @@ public class UpdateHelper extends BaseRemoteHelper {
     public static final int UPDATE_OFF = 0;
     public static final int UPDATE_CHANNEL_RELEASE = 1;
     public static final int UPDATE_CHANNEL_BETA = 2;
+
+    // Moggogram releases are regular posts in the releases channel:
+    // "#release moggogram <versionName> (<versionCode>) <abi>" + the APK attached.
+    private static final long RELEASES_CHANNEL_ID = 0L;
+    private static final String RELEASES_CHANNEL_NAME = "releases_channel";
+    private static final String RELEASE_TAG = "#release moggogram";
+    private static final Pattern RELEASE_HEADER = Pattern.compile("^#release moggogram (\\S+) \\((\\d+)\\)(?: (\\S+))?");
     private boolean updateAlways = false;
 
     public static UpdateHelper getInstance() {
@@ -58,6 +66,46 @@ public class UpdateHelper extends BaseRemoteHelper {
     protected String getTag() {
         if (BuildConfig.DEBUG) return "updateDebug";
         return NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UPDATE_CHANNEL_RELEASE ? "updateRelease" : "updateBeta";
+    }
+
+    @Override
+    protected long getChannelId() {
+        return RELEASES_CHANNEL_ID;
+    }
+
+    @Override
+    protected String getChannelName() {
+        return RELEASES_CHANNEL_NAME;
+    }
+
+    @Override
+    protected String getSearchQuery() {
+        return RELEASE_TAG;
+    }
+
+    @Override
+    protected JSONObject parseMessage(TLRPC.Message message) throws JSONException {
+        if (message.message == null || !(message.media instanceof TLRPC.TL_messageMediaDocument) || message.media.document == null) {
+            return null;
+        }
+        var matcher = RELEASE_HEADER.matcher(message.message);
+        if (!matcher.find()) {
+            return null;
+        }
+        var abi = matcher.group(3);
+        if (abi == null || !abi.contains("-")) {
+            abi = "universal";
+        }
+        var document = new JSONObject();
+        document.put(abi, message.id);
+        var json = new JSONObject();
+        json.put("can_not_skip", false);
+        json.put("version", matcher.group(1));
+        json.put("version_code", Integer.parseInt(matcher.group(2)));
+        json.put("message", message.id);
+        json.put("document", document);
+        json.put("url", "https://t.me/" + RELEASES_CHANNEL_NAME + "/" + message.id);
+        return json;
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -106,8 +154,8 @@ public class UpdateHelper extends BaseRemoteHelper {
                             string.getBoolean("can_not_skip"),
                             string.getString("version"),
                             remoteVersion,
-                            string.getInt("sticker"),
-                            string.getInt("message"),
+                            string.optInt("sticker", 0),
+                            string.optInt("message", 0),
                             jsonToMap(string.getJSONObject("document")),
                             string.getString("url")
                     );
@@ -133,7 +181,7 @@ public class UpdateHelper extends BaseRemoteHelper {
         }
         if (response != null) {
             var res = (TLRPC.messages_Messages) response;
-            getMessagesController().removeDeletedMessagesFromArray(CHANNEL_METADATA_ID, res.messages);
+            getMessagesController().removeDeletedMessagesFromArray(getChannelId(), res.messages);
             var messages = new HashMap<Integer, TLRPC.Message>();
             for (var message : res.messages) {
                 messages.put(message.id, message);
@@ -184,7 +232,7 @@ public class UpdateHelper extends BaseRemoteHelper {
             getNewVersionMessagesCallback(delegate, update, null, null);
         } else {
             var req = new TLRPC.TL_channels_getMessages();
-            req.channel = getMessagesController().getInputChannel(CHANNEL_METADATA_ID);
+            req.channel = getMessagesController().getInputChannel(getChannelId());
             req.id = new ArrayList<>(ids.values());
             getConnectionsManager().sendRequest(req, (response1, error1) -> {
                 if (error1 == null) {
@@ -222,8 +270,8 @@ public class UpdateHelper extends BaseRemoteHelper {
             this.canNotSkip = canNotSkip;
             this.version = version;
             this.versionCode = versionCode;
-            this.sticker = sticker;
-            this.message = message;
+            this.sticker = sticker != 0 ? sticker : null;
+            this.message = message != 0 ? message : null;
             this.document = document;
             this.url = url;
         }

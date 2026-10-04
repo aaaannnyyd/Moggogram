@@ -44,6 +44,26 @@ public abstract class BaseRemoteHelper {
 
     abstract protected String getTag();
 
+    protected long getChannelId() {
+        return CHANNEL_METADATA_ID;
+    }
+
+    protected String getChannelName() {
+        return CHANNEL_METADATA_NAME;
+    }
+
+    protected String getSearchQuery() {
+        return "#" + getTag();
+    }
+
+    protected JSONObject parseMessage(TLRPC.Message message) throws JSONException {
+        var tag = "#" + getTag();
+        if (TextUtils.isEmpty(message.message) || !message.message.startsWith(tag)) {
+            return null;
+        }
+        return new JSONObject(message.message.substring(tag.length()).trim());
+    }
+
     protected void onLoadSuccess(ArrayList<JSONObject> responses, Delegate delegate) {
         var tag = getTag();
         var json = responses.size() > 0 ? responses.get(0) : null;
@@ -61,16 +81,15 @@ public abstract class BaseRemoteHelper {
     }
 
     private void onGetMessageSuccess(TLObject response, Delegate delegate) {
-        var tag = "#" + getTag();
         final var res = (TLRPC.messages_Messages) response;
-        getMessagesController().removeDeletedMessagesFromArray(CHANNEL_METADATA_ID, res.messages);
+        getMessagesController().removeDeletedMessagesFromArray(getChannelId(), res.messages);
         ArrayList<JSONObject> responses = new ArrayList<>();
         for (var message : res.messages) {
-            if (TextUtils.isEmpty(message.message) || !message.message.startsWith(tag)) {
-                continue;
-            }
             try {
-                responses.add(new JSONObject(message.message.substring(tag.length()).trim()));
+                var json = parseMessage(message);
+                if (json != null) {
+                    responses.add(json);
+                }
             } catch (JSONException e) {
                 FileLog.e(e);
             }
@@ -87,16 +106,15 @@ public abstract class BaseRemoteHelper {
     }
 
     private void load(boolean forceRefreshAccessHash, Delegate delegate) {
-        var tag = "#" + getTag();
         TLRPC.TL_messages_search req = new TLRPC.TL_messages_search();
         req.limit = 10;
         req.offset_id = 0;
         req.filter = new TLRPC.TL_inputMessagesFilterEmpty();
-        req.q = tag;
-        req.peer = getMessagesController().getInputPeer(-CHANNEL_METADATA_ID);
+        req.q = getSearchQuery();
+        req.peer = getMessagesController().getInputPeer(-getChannelId());
         if (req.peer == null || req.peer.access_hash == 0 || forceRefreshAccessHash) {
             TLRPC.TL_contacts_resolveUsername req1 = new TLRPC.TL_contacts_resolveUsername();
-            req1.username = CHANNEL_METADATA_NAME;
+            req1.username = getChannelName();
             getConnectionsManager().sendRequest(req1, (response1, error1) -> {
                 if (error1 != null) {
                     return;

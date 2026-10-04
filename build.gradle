@@ -23,7 +23,7 @@ subprojects {
                     sourceCompatibility = JavaVersion.VERSION_21
                     targetCompatibility = JavaVersion.VERSION_21
 
-                    if (!project.projectDir.absolutePath.contains('/TMessagesProj_Modules/media/')) {
+                    if (!project.projectDir.absolutePath.replace(File.separator, '/').contains('/TMessagesProj_Modules/media/')) {
                         coreLibraryDesugaringEnabled = true
                     }
                 }
@@ -62,7 +62,7 @@ subprojects {
         }
     }
 
-    if (project.projectDir.absolutePath.contains('/TMessagesProj_Modules/media/')) {
+    if (project.projectDir.absolutePath.replace(File.separator, '/').contains('/TMessagesProj_Modules/media/')) {
         project.plugins.withId('com.android.library') {
             project.android {
                 if (namespace == null) {

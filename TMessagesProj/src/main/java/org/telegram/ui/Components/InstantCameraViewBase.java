@@ -174,6 +174,10 @@ public abstract class InstantCameraViewBase extends FrameLayout {
     /** Applies the host pan translation. */
     public abstract void onPanTranslationUpdate(float translationY);
 
+    // nax: start round video recording with the chosen camera
+    public void setUseFrontCamera(boolean useFront) {
+    }
+
     /** Common camera container required by the send-to-message transition. */
     public abstract static class InstantViewCameraContainer extends FrameLayout {
         /** Creates a transition container. */
