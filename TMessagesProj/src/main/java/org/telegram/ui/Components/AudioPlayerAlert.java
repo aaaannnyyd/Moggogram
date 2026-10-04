@@ -708,7 +708,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
             updatePlaybackButton(true);
         });
         playbackSpeedButton.setIcon(speedIcon = new SpeedIconDrawable(true));
-        final float[] toggleSpeeds = new float[] { 1.0F, 1.5F, 2F };
+        final float[] toggleSpeeds = new float[] { 1.0F, 1.5F, 2F, 2.5F, 3F }; // Moggogram: tap cycles up to 3x
         speedSlider = new ActionBarMenuSlider.SpeedSlider(getContext(), resourcesProvider);
         speedSlider.setRoundRadiusDp(6);
         speedSlider.setDrawShadow(true);
