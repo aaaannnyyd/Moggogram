@@ -29,6 +29,16 @@ public final class SharedSettings {
     public static final EnumSetting<RoundVideoSession.CameraFacing> roundVideoLastCamera =
         EnumSetting.of("round_video_last_camera", RoundVideoSession.CameraFacing.FRONT);
 
+    // Moggogram: camera controls on the round video screen
+    public static final EnumSetting<RoundVideoSession.CameraControls> roundVideoCameraControls =
+        EnumSetting.of("moggo_round_video_camera_controls", RoundVideoSession.CameraControls.LENSES);
+
+    public static final EnumSetting<RoundVideoSession.DefaultLens> roundVideoDefaultLens =
+        EnumSetting.of("moggo_round_video_default_lens", RoundVideoSession.DefaultLens.MAIN);
+
+    public static final BooleanSetting roundVideoResetZoomAfterPinch =
+        BooleanSetting.of("moggo_round_video_reset_zoom", false);
+
     private SharedSettings() {
     }
 }

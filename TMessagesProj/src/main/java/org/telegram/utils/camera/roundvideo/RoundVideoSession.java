@@ -62,6 +62,23 @@ public final class RoundVideoSession {
         LOW
     }
 
+    /** Moggogram: on-screen camera controls shown while recording. */
+    public enum CameraControls {
+        /** Lens switcher under the circle plus a zoom ruler. */
+        LENSES,
+        /** Only the zoom ruler. */
+        ZOOM_SLIDER,
+        /** Stock Telegram behaviour: pinch zoom that snaps back. */
+        TELEGRAM
+    }
+
+    /** Moggogram: lens the rear camera starts with. */
+    public enum DefaultLens {
+        WIDE,
+        MAIN,
+        TELE
+    }
+
     /** Camera selected for the next or current recording segment. */
     public enum CameraFacing {
         /** User-facing camera. */
@@ -406,6 +423,8 @@ public final class RoundVideoSession {
         private final FrameRate activeFrameRate;
         private final FlashType flashType;
         private final float maximumZoomRatio;
+        private final float minimumZoomRatio;
+        private final float[] lensStops;
 
         private CameraCapabilities(
                 CameraFacing requestedFacing,
@@ -415,8 +434,12 @@ public final class RoundVideoSession {
                 FrameRate requestedFrameRate,
                 FrameRate activeFrameRate,
                 FlashType flashType,
-                float maximumZoomRatio
+                float maximumZoomRatio,
+                float minimumZoomRatio,
+                float[] lensStops
         ) {
+            this.minimumZoomRatio = minimumZoomRatio;
+            this.lensStops = lensStops;
             this.requestedFacing = requestedFacing;
             this.activeFacing = activeFacing;
             this.requestedResolution = requestedResolution;
@@ -452,7 +475,13 @@ public final class RoundVideoSession {
         public float getMaximumZoomRatio() { return maximumZoomRatio; }
 
         /** Returns whether the configured camera supports zoom. */
-        public boolean isZoomSupported() { return maximumZoomRatio > 1f; }
+        public boolean isZoomSupported() { return maximumZoomRatio > minimumZoomRatio; }
+
+        /** Returns the smallest zoom ratio (below 1 when an ultra-wide lens is reachable). */
+        public float getMinimumZoomRatio() { return minimumZoomRatio; }
+
+        /** Returns zoom ratios that correspond to physical lenses, ascending, always containing 1. */
+        public @NonNull float[] getLensStops() { return lensStops; }
     }
 
     /** Immutable description of the completed output file. */
@@ -528,6 +557,8 @@ public final class RoundVideoSession {
     private FrameRate activeFrameRate;
     private FlashType flashType = FlashType.NONE;
     private float maximumZoomRatio = 1f;
+    private float minimumZoomRatio = 1f;
+    private float[] lensStops = {1f};
     private float zoomProgress;
     private boolean flashEnabled;
     private boolean screenFlashEnabled;
@@ -750,6 +781,14 @@ public final class RoundVideoSession {
         return cameraController.setZoom(zoomProgress);
     }
 
+    /** Moggogram: applies an absolute zoom ratio; it survives until the next camera switch. */
+    @MainThread
+    public boolean setZoomRatio(float ratio) {
+        requireMainThread();
+        if (isTerminalState() || cameraSwitching) return false;
+        return cameraController.setZoomRatio(clamp(ratio, minimumZoomRatio, maximumZoomRatio));
+    }
+
     /** Enables the rear torch or requests front-camera screen flash. */
     @MainThread
     public boolean setFlashEnabled(boolean enabled) {
@@ -929,6 +968,8 @@ public final class RoundVideoSession {
         activeCameraResolution = info.cameraResolution;
         activeFrameRate = info.frameRate;
         maximumZoomRatio = info.maximumZoomRatio;
+        minimumZoomRatio = info.minimumZoomRatio;
+        lensStops = info.lensStops;
         flashType = info.facing == CameraFacing.FRONT
                 ? screenFlashController == null ? FlashType.NONE : FlashType.SCREEN
                 : info.torchAvailable ? FlashType.TORCH : FlashType.NONE;
@@ -1369,7 +1410,9 @@ public final class RoundVideoSession {
                 requestedFrameRate,
                 activeFrameRate,
                 flashType,
-                maximumZoomRatio
+                maximumZoomRatio,
+                minimumZoomRatio,
+                lensStops
         ));
     }
 

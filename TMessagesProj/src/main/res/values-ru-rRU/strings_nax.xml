@@ -355,4 +355,14 @@
     <string name="RoundVideoComposition">Оформление</string>
     <string name="RoundVideoCompositionEnabled">Оформление кружка</string>
     <string name="RoundVideoCompositionInfo">Выключите, чтобы записывать простой квадрат без размытия и затемнения вокруг круга и без наложений Telegram.</string>
+    <string name="MoggoRoundCameraControls">Управление камерой</string>
+    <string name="MoggoRoundControlsLenses">Объективы + зум</string>
+    <string name="MoggoRoundControlsSlider">Только полоска зума</string>
+    <string name="MoggoRoundControlsTelegram">Как в Telegram</string>
+    <string name="MoggoRoundDefaultLens">Объектив по умолчанию</string>
+    <string name="MoggoRoundLensWide">Широкоугольный</string>
+    <string name="MoggoRoundLensMain">Основной (1×)</string>
+    <string name="MoggoRoundLensTele">Телевик</string>
+    <string name="MoggoRoundResetZoom">Сбрасывать зум после щипка</string>
+    <string name="MoggoRoundControlsInfo">Нажмите на объектив под кружком, чтобы переключить его, или ведите пальцем вбок для плавного зума. Объективы, которые телефон скрывает от приложений, недоступны. «Как в Telegram» — стандартная камера кружков.</string>
 </resources>

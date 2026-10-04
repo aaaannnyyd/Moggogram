@@ -39,10 +39,15 @@ public class RoundVideoSettingsActivity extends BaseFragment {
     private static final int ROW_FRAME_RATE = 4;
     private static final int ROW_BITRATE = 5;
     private static final int ROW_GENERAL_INFO = 6;
-    private static final int ROW_COMPOSITION_HEADER = 7;
-    private static final int ROW_COMPOSITION = 8;
-    private static final int ROW_COMPOSITION_INFO = 9;
-    private static final int ROW_COUNT = BuildConfig.DEBUG_PRIVATE_VERSION ? 10 : 7;
+    private static final int ROW_CONTROLS_HEADER = 7;
+    private static final int ROW_CONTROLS = 8;
+    private static final int ROW_DEFAULT_LENS = 9;
+    private static final int ROW_RESET_ZOOM = 10;
+    private static final int ROW_CONTROLS_INFO = 11;
+    private static final int ROW_COMPOSITION_HEADER = 12;
+    private static final int ROW_COMPOSITION = 13;
+    private static final int ROW_COMPOSITION_INFO = 14;
+    private static final int ROW_COUNT = BuildConfig.DEBUG_PRIVATE_VERSION ? 15 : 12;
 
     private static final int[] BITRATES = {
             750_000,
@@ -139,7 +144,58 @@ public class RoundVideoSettingsActivity extends BaseFragment {
         } else if (position == ROW_COMPOSITION) {
             SharedSettings.roundVideoComposition.set(!SharedSettings.roundVideoComposition.get());
             adapter.notifyItemChanged(position);
+        } else if (position == ROW_CONTROLS) {
+            showChoice(
+                    R.string.MoggoRoundCameraControls,
+                    new CharSequence[]{
+                            LocaleController.getString(R.string.MoggoRoundControlsLenses),
+                            LocaleController.getString(R.string.MoggoRoundControlsSlider),
+                            LocaleController.getString(R.string.MoggoRoundControlsTelegram)
+                    },
+                    index -> SharedSettings.roundVideoCameraControls.set(
+                            RoundVideoSession.CameraControls.values()[index]
+                    )
+            );
+        } else if (position == ROW_DEFAULT_LENS) {
+            if (!zoomControlsEnabled()) return;
+            showChoice(
+                    R.string.MoggoRoundDefaultLens,
+                    new CharSequence[]{
+                            LocaleController.getString(R.string.MoggoRoundLensWide),
+                            LocaleController.getString(R.string.MoggoRoundLensMain),
+                            LocaleController.getString(R.string.MoggoRoundLensTele)
+                    },
+                    index -> SharedSettings.roundVideoDefaultLens.set(
+                            RoundVideoSession.DefaultLens.values()[index]
+                    )
+            );
+        } else if (position == ROW_RESET_ZOOM) {
+            if (!zoomControlsEnabled()) return;
+            SharedSettings.roundVideoResetZoomAfterPinch.set(!SharedSettings.roundVideoResetZoomAfterPinch.get());
+            adapter.notifyItemChanged(position);
         }
+    }
+
+    private static boolean zoomControlsEnabled() {
+        return SharedSettings.roundVideoCameraControls.get() != RoundVideoSession.CameraControls.TELEGRAM;
+    }
+
+    private static String controlsLabel(RoundVideoSession.CameraControls controls) {
+        if (controls == RoundVideoSession.CameraControls.LENSES) {
+            return LocaleController.getString(R.string.MoggoRoundControlsLenses);
+        } else if (controls == RoundVideoSession.CameraControls.ZOOM_SLIDER) {
+            return LocaleController.getString(R.string.MoggoRoundControlsSlider);
+        }
+        return LocaleController.getString(R.string.MoggoRoundControlsTelegram);
+    }
+
+    private static String lensLabel(RoundVideoSession.DefaultLens lens) {
+        if (lens == RoundVideoSession.DefaultLens.WIDE) {
+            return LocaleController.getString(R.string.MoggoRoundLensWide);
+        } else if (lens == RoundVideoSession.DefaultLens.TELE) {
+            return LocaleController.getString(R.string.MoggoRoundLensTele);
+        }
+        return LocaleController.getString(R.string.MoggoRoundLensMain);
     }
 
     private void showChoice(int titleResId, CharSequence[] choices, ChoiceHandler handler) {
@@ -196,10 +252,14 @@ public class RoundVideoSettingsActivity extends BaseFragment {
             if (!SharedSettings.roundVideoCamera2Enabled.get()) {
                 return false;
             }
+            if (position == ROW_DEFAULT_LENS || position == ROW_RESET_ZOOM) {
+                return zoomControlsEnabled();
+            }
             return position == ROW_OUTPUT_RESOLUTION
                     || position == ROW_CAMERA_RESOLUTION
                     || position == ROW_FRAME_RATE
                     || position == ROW_BITRATE
+                    || position == ROW_CONTROLS
                     || position == ROW_COMPOSITION;
         }
 
@@ -232,6 +292,8 @@ public class RoundVideoSettingsActivity extends BaseFragment {
                 HeaderCell cell = (HeaderCell) holder.itemView;
                 cell.setText(position == ROW_GENERAL_HEADER
                         ? LocaleController.getString(R.string.RoundVideoGeneral)
+                        : position == ROW_CONTROLS_HEADER
+                        ? LocaleController.getString(R.string.MoggoRoundCameraControls)
                         : LocaleController.getString(R.string.RoundVideoComposition));
             } else if (holder.getItemViewType() == TYPE_CHECK) {
                 TextCheckCell cell = (TextCheckCell) holder.itemView;
@@ -240,6 +302,13 @@ public class RoundVideoSettingsActivity extends BaseFragment {
                     cell.setTextAndCheck(
                             LocaleController.getString(R.string.RoundVideoUseNewRecorder),
                             enabled,
+                            false
+                    );
+                } else if (position == ROW_RESET_ZOOM) {
+                    cell.setEnabled(enabled && zoomControlsEnabled());
+                    cell.setTextAndCheck(
+                            LocaleController.getString(R.string.MoggoRoundResetZoom),
+                            SharedSettings.roundVideoResetZoomAfterPinch.get(),
                             false
                     );
                 } else {
@@ -270,6 +339,19 @@ public class RoundVideoSettingsActivity extends BaseFragment {
                             SharedSettings.roundVideoFrameRate.get().getValue() + " FPS",
                             true
                     );
+                } else if (position == ROW_CONTROLS) {
+                    cell.setTextAndValue(
+                            LocaleController.getString(R.string.MoggoRoundCameraControls),
+                            controlsLabel(SharedSettings.roundVideoCameraControls.get()),
+                            true
+                    );
+                } else if (position == ROW_DEFAULT_LENS) {
+                    cell.setEnabled(enabled && zoomControlsEnabled());
+                    cell.setTextAndValue(
+                            LocaleController.getString(R.string.MoggoRoundDefaultLens),
+                            lensLabel(SharedSettings.roundVideoDefaultLens.get()),
+                            true
+                    );
                 } else {
                     cell.setTextAndValue(
                             LocaleController.getString(R.string.RoundVideoBitrate),
@@ -281,20 +363,25 @@ public class RoundVideoSettingsActivity extends BaseFragment {
                 TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
                 cell.setText(position == ROW_GENERAL_INFO
                         ? LocaleController.getString(R.string.RoundVideoGeneralInfo)
+                        : position == ROW_CONTROLS_INFO
+                        ? LocaleController.getString(R.string.MoggoRoundControlsInfo)
                         : LocaleController.getString(R.string.RoundVideoCompositionInfo));
             }
         }
 
         @Override
         public int getItemViewType(int position) {
-            if (position == ROW_GENERAL_HEADER || position == ROW_COMPOSITION_HEADER) {
+            if (position == ROW_GENERAL_HEADER || position == ROW_CONTROLS_HEADER
+                    || position == ROW_COMPOSITION_HEADER) {
                 return TYPE_HEADER;
             }
             if (position == ROW_ENABLED
+                    || position == ROW_RESET_ZOOM
                     || position == ROW_COMPOSITION) {
                 return TYPE_CHECK;
             }
-            if (position == ROW_GENERAL_INFO || position == ROW_COMPOSITION_INFO) {
+            if (position == ROW_GENERAL_INFO || position == ROW_CONTROLS_INFO
+                    || position == ROW_COMPOSITION_INFO) {
                 return TYPE_INFO;
             }
             return TYPE_VALUE;

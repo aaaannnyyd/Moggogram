@@ -1,5 +1,8 @@
 package org.telegram.utils.camera.roundvideo;
 
+import java.util.Collections;
+import android.util.SizeF;
+import org.telegram.utils.settings.SharedSettings;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -57,6 +60,8 @@ final class RoundVideoCameraController {
         final Size previewSize;
         final Size recordingSize;
         final float maximumZoomRatio;
+        final float minimumZoomRatio;
+        final float[] lensStops;
         final boolean torchAvailable;
 
         CameraInfo(
@@ -66,8 +71,12 @@ final class RoundVideoCameraController {
                 Size previewSize,
                 Size recordingSize,
                 float maximumZoomRatio,
+                float minimumZoomRatio,
+                float[] lensStops,
                 boolean torchAvailable
         ) {
+            this.minimumZoomRatio = minimumZoomRatio;
+            this.lensStops = lensStops;
             this.facing = facing;
             this.cameraResolution = cameraResolution;
             this.frameRate = frameRate;
@@ -83,6 +92,8 @@ final class RoundVideoCameraController {
     private static final int MAXIMUM_SOURCE_LONG_SIDE = 1920;
     private static final int MAXIMUM_CROP_OVERSIZE_PERCENT = 15;
     private static final float MAXIMUM_UI_ZOOM_RATIO = 4f;
+    private static final float MAXIMUM_EXTENDED_ZOOM_RATIO = 10f;
+    private static final int MAXIMUM_LENS_STOPS = 4;
     private static final long FRAME_METRICS_PERIOD_NS = 5_000_000_000L;
     private static final long FRAME_GAP_WARNING_NS = 50_000_000L;
     private static final long FRAME_GAP_SEVERE_NS = 100_000_000L;
@@ -129,6 +140,11 @@ final class RoundVideoCameraController {
     private long timelineOffsetUs;
     private volatile float zoomProgress;
     private float maximumZoomRatio = 1f;
+    private float minimumZoomRatio = 1f;
+    private float[] lensStops = {1f};
+    // Moggogram: absolute zoom ratio from the lens switcher / ruler; NaN = use zoomProgress
+    private volatile float zoomRatio = Float.NaN;
+    private final boolean extendedZoom;
     private boolean torchEnabled;
     private boolean torchVerificationPending;
     private int torchVerificationFrames;
@@ -217,6 +233,8 @@ final class RoundVideoCameraController {
         this.compositionEnabled = compositionEnabled;
         this.diagnostics = diagnostics;
         this.callback = callback;
+        this.extendedZoom = SharedSettings.roundVideoCameraControls.get()
+                != RoundVideoSession.CameraControls.TELEGRAM;
         previewView.addOnLayoutChangeListener(layoutChangeListener);
     }
 
@@ -253,6 +271,15 @@ final class RoundVideoCameraController {
 
     boolean setZoom(float progress) {
         zoomProgress = clamp(progress, 0f, 1f);
+        Handler handler = cameraHandler;
+        if (!active || handler == null) return false;
+        handler.removeCallbacks(applyZoomRunnable);
+        handler.post(applyZoomRunnable);
+        return true;
+    }
+
+    boolean setZoomRatio(float ratio) {
+        zoomRatio = ratio;
         Handler handler = cameraHandler;
         if (!active || handler == null) return false;
         handler.removeCallbacks(applyZoomRunnable);
@@ -496,6 +523,7 @@ final class RoundVideoCameraController {
         torchEnabled = false;
         torchVerificationPending = false;
         zoomProgress = 0f;
+        zoomRatio = Float.NaN;
         callback.onCameraSwitchStarted(facing);
         cameraSwitchStartedNs = SystemClock.elapsedRealtimeNanos();
         diagnostics.log("camera device switch started: from=" + activeFacing + ", to=" + facing);
@@ -621,6 +649,8 @@ final class RoundVideoCameraController {
                                         previewSize,
                                         recordingSize,
                                         maximumZoomRatio,
+                                        minimumZoomRatio,
+                                        lensStops,
                                         isTorchAvailable()
                                 ),
                                 wasSwitch
@@ -975,7 +1005,10 @@ final class RoundVideoCameraController {
     }
 
     private void applyZoom(@NonNull CaptureRequest.Builder builder) {
-        float ratio = 1f + zoomProgress * (maximumZoomRatio - 1f);
+        float requestedRatio = zoomRatio;
+        float ratio = Float.isNaN(requestedRatio)
+                ? 1f + zoomProgress * (maximumZoomRatio - 1f)
+                : requestedRatio;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Range<Float> range = characteristics == null
                     ? null
@@ -989,6 +1022,7 @@ final class RoundVideoCameraController {
                 ? null
                 : characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
         if (activeArray == null) return;
+        ratio = Math.max(1f, ratio);
         int cropWidth = Math.max(1, Math.round(activeArray.width() / ratio));
         int cropHeight = Math.max(1, Math.round(activeArray.height() / ratio));
         int left = activeArray.centerX() - cropWidth / 2;
@@ -1118,6 +1152,10 @@ final class RoundVideoCameraController {
         sourceCropSize = pair.cropSize;
         activeCameraResolution = pair.cameraResolution;
         maximumZoomRatio = readMaximumZoomRatio(selectedCharacteristics);
+        minimumZoomRatio = readMinimumZoomRatio(selectedCharacteristics);
+        lensStops = extendedZoom
+                ? computeLensStops(selectedCharacteristics, minimumZoomRatio, maximumZoomRatio, facing)
+                : new float[]{1f};
         long previewMinFrameDurationNs = getMinimumFrameDurationNs(
                 selectedCharacteristics,
                 previewSize
@@ -1196,7 +1234,77 @@ final class RoundVideoCameraController {
             Float value = cameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
             if (value != null) maximum = value;
         }
-        return clamp(maximum, 1f, MAXIMUM_UI_ZOOM_RATIO);
+        return clamp(maximum, 1f, extendedZoom ? MAXIMUM_EXTENDED_ZOOM_RATIO : MAXIMUM_UI_ZOOM_RATIO);
+    }
+
+    // Moggogram: below 1x the logical camera hands over to the ultra-wide lens by itself.
+    private float readMinimumZoomRatio(@NonNull CameraCharacteristics cameraCharacteristics) {
+        if (!extendedZoom || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return 1f;
+        Range<Float> range = cameraCharacteristics.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
+        if (range == null) return 1f;
+        return clamp(range.getLower(), 0.3f, 1f);
+    }
+
+    // Zoom ratios at which the logical camera lands on a physical lens: the ultra-wide end of
+    // the range, 1x, and telephoto lenses derived from focal length / sensor diagonal.
+    private float[] computeLensStops(
+            @NonNull CameraCharacteristics logical,
+            float minimum,
+            float maximum,
+            @NonNull RoundVideoSession.CameraFacing facing
+    ) {
+        ArrayList<Float> stops = new ArrayList<>();
+        boolean hasWide = minimum < 0.95f;
+        if (hasWide) stops.add(minimum);
+        stops.add(1f);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            ArrayList<Float> equivalents = new ArrayList<>();
+            for (String physicalId : logical.getPhysicalCameraIds()) {
+                try {
+                    float equivalent = equivalentFocalLength(
+                            cameraManager.getCameraCharacteristics(physicalId)
+                    );
+                    if (equivalent > 0f) equivalents.add(equivalent);
+                } catch (Exception e) {
+                    diagnostics.log("physical camera skipped: id=" + physicalId + ", reason=" + e);
+                }
+            }
+            Collections.sort(equivalents);
+            int mainIndex = hasWide && equivalents.size() > 1 ? 1 : 0;
+            if (!equivalents.isEmpty()) {
+                float main = equivalents.get(mainIndex);
+                for (int i = mainIndex + 1; i < equivalents.size(); i++) {
+                    float stop = equivalents.get(i) / main;
+                    if (stop >= 1.4f && stop <= maximum + 0.05f) stops.add(Math.min(stop, maximum));
+                }
+            }
+        }
+        if (facing == RoundVideoSession.CameraFacing.BACK
+                && stops.get(stops.size() - 1) <= 1f && maximum >= 2f) {
+            stops.add(2f); // no telephoto lens: offer a 2x digital stop
+        }
+        Collections.sort(stops);
+        ArrayList<Float> unique = new ArrayList<>();
+        for (float stop : stops) {
+            if (unique.isEmpty() || stop - unique.get(unique.size() - 1) > 0.15f) unique.add(stop);
+        }
+        while (unique.size() > MAXIMUM_LENS_STOPS) unique.remove(unique.size() - 1);
+        float[] result = new float[unique.size()];
+        for (int i = 0; i < result.length; i++) result[i] = unique.get(i);
+        diagnostics.log("lens stops: " + Arrays.toString(result)
+                + ", zoomRange=" + minimum + ".." + maximum);
+        return result;
+    }
+
+    private static float equivalentFocalLength(@NonNull CameraCharacteristics characteristics) {
+        float[] focalLengths = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
+        SizeF sensor = characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE);
+        if (focalLengths == null || focalLengths.length == 0 || sensor == null) return 0f;
+        float diagonal = (float) Math.hypot(sensor.getWidth(), sensor.getHeight());
+        if (diagonal <= 0f) return 0f;
+        float focal = focalLengths[0];
+        for (float value : focalLengths) focal = Math.min(focal, value);
+        return focal / diagonal;
     }
 
     private boolean isTorchAvailable() {

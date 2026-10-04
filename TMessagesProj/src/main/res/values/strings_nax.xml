@@ -357,4 +357,14 @@
     <string name="MoggoReleasesChannel">Releases channel</string>
     <string name="MoggoForkOf">Fork of Nagram X</string>
     <string name="AppIconMoggogram" translatable="false">Moggogram</string>
+    <string name="MoggoRoundCameraControls">Camera controls</string>
+    <string name="MoggoRoundControlsLenses">Lenses + zoom</string>
+    <string name="MoggoRoundControlsSlider">Zoom ruler only</string>
+    <string name="MoggoRoundControlsTelegram">Like Telegram</string>
+    <string name="MoggoRoundDefaultLens">Default lens</string>
+    <string name="MoggoRoundLensWide">Ultra wide</string>
+    <string name="MoggoRoundLensMain">Main (1×)</string>
+    <string name="MoggoRoundLensTele">Telephoto</string>
+    <string name="MoggoRoundResetZoom">Reset zoom after pinch</string>
+    <string name="MoggoRoundControlsInfo">Tap a lens under the circle to switch it, or drag sideways for smooth zoom. Lenses the phone hides from apps are not available. "Like Telegram" keeps the stock round video camera.</string>
 </resources>

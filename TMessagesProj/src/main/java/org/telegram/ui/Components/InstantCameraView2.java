@@ -125,6 +125,14 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
     private boolean recordingUiFallbackRegistered;
     private boolean handlingPreviewTextureInvalidate;
 
+    // Moggogram: lens switcher / zoom ruler
+    private final RoundVideoZoomControl zoomControl;
+    private RoundVideoSession.CameraControls cameraControls = RoundVideoSession.CameraControls.TELEGRAM;
+    private RoundVideoSession.CameraFacing zoomConfiguredFacing;
+    private float selectedLensRatio = 1f;
+    private float pinchStartRatio = 1f;
+    private boolean zoomControlShown;
+
     private final Runnable recordingUiFallback = () -> {
         if (!isRecordingState()) return;
         long nowNs = SystemClock.elapsedRealtimeNanos();
@@ -271,6 +279,15 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
         muteImageView.setAlpha(0f);
         addView(muteImageView, LayoutHelper.createFrame(48, 48, Gravity.CENTER));
 
+        zoomControl = new RoundVideoZoomControl(context);
+        zoomControl.setAlpha(0f);
+        zoomControl.setVisibility(GONE);
+        zoomControl.setListener((ratio, animated) -> {
+            selectedLensRatio = ratio;
+            if (session != null) session.setZoomRatio(ratio);
+        });
+        addView(zoomControl, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 60, Gravity.CENTER));
+
         textureView.setOnTouchListener(this::handleZoomTouch);
         super.setVisibility(INVISIBLE);
     }
@@ -295,6 +312,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
     public void setVisibility(int visibility) {
         super.setVisibility(visibility);
         buttonsLayout.setAlpha(0f);
+        zoomControl.setAlpha(0f);
         cameraContainer.setAlpha(0f);
         cameraContainer.setScaleX(setVisibilityFromPause ? 1f : 0.1f);
         cameraContainer.setScaleY(setVisibilityFromPause ? 1f : 0.1f);
@@ -368,6 +386,10 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
         progressView.setProgress(0f);
         showInitialPlaceholder();
         upload = new TelegramRoundVideoUpload(currentAccount, secretChat);
+        cameraControls = SharedSettings.roundVideoCameraControls.get();
+        zoomControl.setSliderOnly(cameraControls == RoundVideoSession.CameraControls.ZOOM_SLIDER);
+        zoomConfiguredFacing = null;
+        zoomControlShown = false;
         activeOutputResolution = SharedSettings.roundVideoOutputResolution.get();
         session = new RoundVideoSession.Builder(getContext(), textureView)
                 .setOutputDirectory(new File(ApplicationLoader.getFilesDirFixed(), "cache"))
@@ -419,6 +441,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
         visibilityAnimator = new AnimatorSet();
         visibilityAnimator.playTogether(
                 ObjectAnimator.ofFloat(buttonsLayout, View.ALPHA, open ? 1f : 0f),
+                ObjectAnimator.ofFloat(zoomControl, View.ALPHA, open && zoomControlShown ? 1f : 0f),
                 ObjectAnimator.ofFloat(cameraContainer, View.ALPHA, open ? 1f : 0f),
                 ObjectAnimator.ofFloat(cameraContainer, View.SCALE_X, open ? 1f : 0.1f),
                 ObjectAnimator.ofFloat(cameraContainer, View.SCALE_Y, open ? 1f : 0.1f),
@@ -698,6 +721,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
             if (cameraCapabilities.getActiveFacing() != null) {
                 SharedSettings.roundVideoLastCamera.set(cameraCapabilities.getActiveFacing());
             }
+            configureZoomControl(cameraCapabilities);
             updateButtons();
         }
 
@@ -944,6 +968,69 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
                 && capabilities != null
                 && capabilities.getFlashType() != RoundVideoSession.FlashType.NONE);
         updateFlashIcon();
+        updateZoomControl(cameraControls);
+    }
+
+    private void configureZoomControl(@NonNull RoundVideoSession.CameraCapabilities info) {
+        if (this.cameraControls == RoundVideoSession.CameraControls.TELEGRAM || session == null) return;
+        RoundVideoSession.CameraFacing facing = info.getActiveFacing();
+        if (facing == null) return;
+        float[] stops = info.getLensStops();
+        zoomControl.setRange(info.getMinimumZoomRatio(), info.getMaximumZoomRatio(), stops);
+        float ratio;
+        if (facing == zoomConfiguredFacing) {
+            ratio = zoomControl.getRatio(); // resumed after pause: keep what the user picked
+        } else if (facing == RoundVideoSession.CameraFacing.BACK) {
+            ratio = defaultLensRatio(stops, info.getMaximumZoomRatio());
+        } else {
+            ratio = 1f;
+        }
+        zoomConfiguredFacing = facing;
+        selectedLensRatio = ratio;
+        zoomControl.setRatio(ratio);
+        session.setZoomRatio(zoomControl.getRatio());
+    }
+
+    private static float defaultLensRatio(float[] stops, float maximum) {
+        RoundVideoSession.DefaultLens lens = SharedSettings.roundVideoDefaultLens.get();
+        if (lens == RoundVideoSession.DefaultLens.WIDE) {
+            return Math.min(1f, stops[0]);
+        } else if (lens == RoundVideoSession.DefaultLens.TELE) {
+            for (float stop : stops) {
+                if (stop > 1.3f) return stop;
+            }
+            return Math.min(2f, maximum);
+        }
+        return 1f;
+    }
+
+    private void updateZoomControl(boolean cameraControlsEnabled) {
+        boolean show = this.cameraControls != RoundVideoSession.CameraControls.TELEGRAM
+                && capabilities != null
+                && zoomControl.hasZoom()
+                && stateInfo != null
+                && stateInfo.getState() != RoundVideoSession.State.PREVIEWING;
+        zoomControl.setEnabled(cameraControlsEnabled);
+        if (show == zoomControlShown) return;
+        zoomControlShown = show;
+        zoomControl.animate().cancel();
+        if (show) zoomControl.setVisibility(VISIBLE);
+        zoomControl.animate()
+                .alpha(show && opened ? 1f : 0f)
+                .setDuration(180L)
+                .withEndAction(() -> {
+                    if (!zoomControlShown) zoomControl.setVisibility(GONE);
+                })
+                .start();
+    }
+
+    // Below the circle when there is room above the bottom buttons, otherwise above it.
+    private float zoomControlOffset() {
+        int circle = cameraContainer.getLayoutParams().height;
+        int area = getMeasuredHeight() - getPaddingBottom();
+        float below = circle / 2f + dp(34);
+        float bottom = area / 2f + below + dp(30);
+        return bottom <= area - dp(60) ? below : -below;
     }
 
     private void togglePreviewMuted() {
@@ -978,6 +1065,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
             zoomPointerId1 = event.getPointerId(0);
             zoomPointerId2 = event.getPointerId(1);
             pinchStartDistance = pointerDistance(event, 0, 1);
+            pinchStartRatio = zoomControl.getRatio();
             pinchZoomActive = pinchStartDistance > 0f;
             zoomProgress = 0f;
             return true;
@@ -990,6 +1078,11 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
                 return true;
             }
             float scale = pointerDistance(event, index1, index2) / pinchStartDistance;
+            if (cameraControls != RoundVideoSession.CameraControls.TELEGRAM) {
+                zoomControl.setRatio(pinchStartRatio * scale);
+                session.setZoomRatio(zoomControl.getRatio());
+                return true;
+            }
             float maximumZoomRatio = capabilities == null
                     ? 1f
                     : capabilities.getMaximumZoomRatio();
@@ -1032,6 +1125,14 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
         pinchZoomActive = false;
         zoomPointerId1 = -1;
         zoomPointerId2 = -1;
+        if (cameraControls != RoundVideoSession.CameraControls.TELEGRAM) {
+            if (SharedSettings.roundVideoResetZoomAfterPinch.get()) {
+                zoomControl.animateRatio(selectedLensRatio);
+            } else {
+                selectedLensRatio = zoomControl.getRatio();
+            }
+            return;
+        }
         animateZoomReset();
     }
 
@@ -1069,6 +1170,13 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
 
     private void updateTranslationY() {
         cameraContainer.setTranslationY(animationTranslationY + panTranslationY);
+        zoomControl.setTranslationY(animationTranslationY + panTranslationY + zoomControlOffset());
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        updateTranslationY();
     }
 
     private void showInitialPlaceholder() {
