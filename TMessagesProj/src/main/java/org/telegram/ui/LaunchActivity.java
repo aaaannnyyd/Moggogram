@@ -6904,6 +6904,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         ApplicationLoader.mainInterfaceStopped = false;
         org.telegram.ui.Components.MoggoFloatingPlayer.onAppForeground();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) org.telegram.messenger.MoggoBadges.syncOwnBadge(a);
+        org.telegram.messenger.MoggoChatArchive.init();
         if (UserConfig.getInstance(currentAccount).isClientActivated()) {
             AndroidUtilities.runOnUIThread(() -> {
                 if (!isFinishing()) org.telegram.messenger.MoggoPushFix.maybeAskBatteryExemption(this);

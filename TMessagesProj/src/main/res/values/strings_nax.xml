@@ -438,4 +438,16 @@ On Xiaomi, Huawei, Honor, OPPO and realme also enable "Autostart" for Moggogram 
     <string name="MoggoChatStatsRounds">Video messages</string>
     <string name="MoggoChatStatsStickers">Stickers</string>
     <string name="MoggoChatStatsLinks">Links</string>
+    <string name="MoggoArchive">Live archive</string>
+    <string name="MoggoArchiveEnable">Archive this chat</string>
+    <string name="MoggoArchiveMedia">Save media (up to 200 MB per file)</string>
+    <string name="MoggoArchiveBackfill">Existing history</string>
+    <string name="MoggoArchiveOnlyNew">Only new messages</string>
+    <string name="MoggoArchiveLast1000">Also the last 1,000 messages</string>
+    <string name="MoggoArchiveLast10000">Also the last 10,000 messages</string>
+    <string name="MoggoArchiveAbout">Every new message, edit and media file of this chat is written to a folder on the phone as it arrives. Messages the other side deletes stay there, marked as deleted. Open chat.html in any browser to read it.
+
+Folder: %1$s</string>
+    <string name="MoggoArchiveOn">Live archive is on</string>
+    <string name="MoggoArchiveOff">Live archive is off</string>
 </resources>

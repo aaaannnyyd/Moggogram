@@ -436,4 +436,16 @@
     <string name="MoggoChatStatsRounds">Кружки</string>
     <string name="MoggoChatStatsStickers">Стикеры</string>
     <string name="MoggoChatStatsLinks">Ссылки</string>
+    <string name="MoggoArchive">Живой архив</string>
+    <string name="MoggoArchiveEnable">Архивировать этот чат</string>
+    <string name="MoggoArchiveMedia">Сохранять медиа (до 200 МБ на файл)</string>
+    <string name="MoggoArchiveBackfill">Старая история</string>
+    <string name="MoggoArchiveOnlyNew">Только новые сообщения</string>
+    <string name="MoggoArchiveLast1000">И последние 1 000 сообщений</string>
+    <string name="MoggoArchiveLast10000">И последние 10 000 сообщений</string>
+    <string name="MoggoArchiveAbout">Каждое новое сообщение, правка и файл этого чата сразу пишутся в папку на телефоне. Если собеседник что-то удалит, у вас оно останется с пометкой «удалено». Читать — файл chat.html в любом браузере.
+
+Папка: %1$s</string>
+    <string name="MoggoArchiveOn">Живой архив включён</string>
+    <string name="MoggoArchiveOff">Живой архив выключен</string>
 </resources>

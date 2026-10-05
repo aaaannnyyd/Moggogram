@@ -306,6 +306,7 @@ public class ApplicationLoader extends Application {
         MoggoPushFix.enablePushConnection();
         initPushServices();
         MoggoDiagnostics.uploadPendingCrashes();
+        AndroidUtilities.runOnUIThread(MoggoChatArchive::init);
         FileLog.d("app initied");
 
         MediaController.getInstance();
