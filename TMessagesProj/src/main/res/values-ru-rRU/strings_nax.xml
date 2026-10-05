@@ -486,7 +486,7 @@
     <string name="MoggoUgarWebBlocked">Google временно заблокировал запросы с этого IP. Смените сервер VPN или подождите.</string>
     <string name="MoggoUgarVariants">Картинок за раз: %1$d</string>
     <string name="MoggoUgarDrawing">Рисую… %1$d с</string>
-    <string name="MoggoUgarPanelHint">Тап — отправить, удержание — посмотреть</string>
+    <string name="MoggoUgarPanelHint">Тап по картинке — посмотреть и отправить</string>
     <string name="MoggoUgarFailed">Не вышло, тап — подробнее</string>
     <string name="MoggoUgarEdit">@ugar: изменить картинку</string>
     <string name="MoggoUgarEditHint">Что изменить, например «сделай ночь»</string>
@@ -507,4 +507,5 @@
     <string name="MoggoSummaryRecentTitle">Последние сообщения вкратце</string>
     <string name="MoggoSummaryEmpty">Нечего пересказывать.</string>
     <string name="MoggoSummaryLoadFailed">Не удалось загрузить сообщения этого чата.</string>
+    <string name="MoggoUgarViewerCounter">%1$d из %2$d</string>
 </resources>

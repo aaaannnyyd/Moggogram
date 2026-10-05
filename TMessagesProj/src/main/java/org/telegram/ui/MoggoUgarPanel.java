@@ -40,6 +40,7 @@ public class MoggoUgarPanel extends FrameLayout implements MoggoUgar.Listener {
     private final Theme.ResourcesProvider resourcesProvider;
     private final TextView title;
     private final LinearLayout row;
+    private final HorizontalScrollView scroll;
     private final LinearLayout styles;
     private final HashMap<File, Bitmap> thumbs = new HashMap<>();
     private final Runnable ticker = this::tick;
@@ -72,7 +73,7 @@ public class MoggoUgarPanel extends FrameLayout implements MoggoUgar.Listener {
         header.addView(iconButton(context, R.drawable.msg_retry, v -> MoggoUgar.again(MoggoUgar.jobKey(fragment))), LayoutHelper.createLinear(36, 36));
         header.addView(iconButton(context, R.drawable.ic_close_white, v -> MoggoUgar.dismiss(MoggoUgar.jobKey(fragment))), LayoutHelper.createLinear(36, 36, 0, 0, 6, 0));
 
-        HorizontalScrollView scroll = new HorizontalScrollView(context);
+        scroll = new HorizontalScrollView(context);
         scroll.setHorizontalScrollBarEnabled(false);
         row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
@@ -172,6 +173,7 @@ public class MoggoUgarPanel extends FrameLayout implements MoggoUgar.Listener {
         if (job.isRunning()) {
             row.addView(loadingTile(), tileParams());
             tick();
+            scroll.post(() -> scroll.fullScroll(View.FOCUS_RIGHT));
         }
     }
 
@@ -203,10 +205,9 @@ public class MoggoUgarPanel extends FrameLayout implements MoggoUgar.Listener {
         }
         image.setImageBitmap(bitmap);
         rounded(image);
-        image.setOnClickListener(v -> MoggoUgar.send(fragment, file));
-        image.setOnLongClickListener(v -> {
-            MoggoUgar.showPreview(fragment, file);
-            return true;
+        image.setOnClickListener(v -> {
+            MoggoUgar.Job job = MoggoUgar.getJob(MoggoUgar.jobKey(fragment));
+            if (job != null) MoggoUgarViewer.show(fragment, new java.util.ArrayList<>(job.images), job.images.indexOf(file));
         });
         return image;
     }

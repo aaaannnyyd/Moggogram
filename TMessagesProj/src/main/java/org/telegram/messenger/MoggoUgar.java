@@ -114,7 +114,7 @@ public final class MoggoUgar {
         job.sticker = sticker;
         Job old = JOBS.put(job.key, job);
         if (old != null) old.cancelled = true;
-        runJob(job);
+        runJob(job, job.variants, true);
     }
 
     /** "стикер кот" / "sticker cat" -> "кот"; null when the prompt does not ask for a sticker. */
@@ -225,10 +225,7 @@ public final class MoggoUgar {
 
     public static void again(String key) {
         Job job = JOBS.get(key);
-        if (job != null) {
-            job.variants = variants();
-            runJob(job);
-        }
+        if (job != null) runJob(job, job.pending + variants(), false);
     }
 
     // ---------------------------------------------------------------- styles
@@ -242,8 +239,10 @@ public final class MoggoUgar {
     public static void setStyle(String key, int style) {
         Job job = JOBS.get(key);
         if (job == null || style < 0 || style >= STYLE_PROMPTS.length) return;
+        if (job.style == style && job.isRunning()) return;
         job.style = style;
-        again(key);
+        // pictures already drawn stay; what is still drawing restarts in the new style
+        runJob(job, job.isRunning() ? job.pending : variants(), false);
     }
 
     private static String composePrompt(Job job, boolean hasRefs) {
@@ -264,11 +263,12 @@ public final class MoggoUgar {
         return Math.max(1, Math.min(4, NaConfig.INSTANCE.getMoggoUgarVariants().Int()));
     }
 
-    private static void runJob(Job job) {
+    /** Draws count pictures; fresh drops what the job had, otherwise new ones are added after them. */
+    private static void runJob(Job job, int count, boolean fresh) {
         int generation = ++job.generation;
-        job.images.clear();
+        if (fresh) job.images.clear();
         job.errors.clear();
-        job.pending = job.variants;
+        job.pending = count;
         job.startedAt = android.os.SystemClock.elapsedRealtime();
         changed(job.key);
         new Thread(() -> {
@@ -280,7 +280,7 @@ public final class MoggoUgar {
                 } catch (InterruptedException ignore) {
                 }
             }
-            for (int i = 0; i < job.variants; i++) {
+            for (int i = 0; i < count; i++) {
                 if (job.cancelled || job.generation != generation) return;
                 Result result;
                 try {

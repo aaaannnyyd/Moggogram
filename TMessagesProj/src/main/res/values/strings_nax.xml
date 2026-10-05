@@ -488,7 +488,7 @@ Sign in to Google to draw with your Gemini subscription (unofficial: Gemini must
     <string name="MoggoUgarWebBlocked">Google temporarily blocked requests from this IP. Change the VPN server or wait.</string>
     <string name="MoggoUgarVariants">Pictures per request: %1$d</string>
     <string name="MoggoUgarDrawing">Drawing… %1$d s</string>
-    <string name="MoggoUgarPanelHint">Tap a picture to send, hold to view</string>
+    <string name="MoggoUgarPanelHint">Tap a picture to view and send</string>
     <string name="MoggoUgarFailed">Failed, tap for details</string>
     <string name="MoggoUgarEdit">@ugar: change picture</string>
     <string name="MoggoUgarEditHint">What to change, e.g. make it night</string>
@@ -509,4 +509,5 @@ Sign in to Google to draw with your Gemini subscription (unofficial: Gemini must
     <string name="MoggoSummaryRecentTitle">Recent messages in short</string>
     <string name="MoggoSummaryEmpty">No messages to retell.</string>
     <string name="MoggoSummaryLoadFailed">Could not load the messages of this chat.</string>
+    <string name="MoggoUgarViewerCounter">%1$d of %2$d</string>
 </resources>
