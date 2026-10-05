@@ -464,11 +464,11 @@ Folder: %1$s</string>
     <string name="MoggoUgarSettings">Neural network @ugar</string>
     <string name="MoggoUgarSettingsAbout">Draw pictures with Gemini right in the chat: type "@ugar your prompt" and send. Attach photos with an "@ugar …" caption, or reply to a photo, to use them as references.
 
-Use your own Gemini API key (aistudio.google.com → Get API key). Image models need billing enabled on the key.</string>
+Sign in to Google to draw with your Gemini subscription (unofficial: Gemini must be reachable from the phone, in Russia via VPN). Or use your own Gemini API key, image models need billing enabled on it.</string>
     <string name="MoggoUgarKeyHint">Gemini API key</string>
     <string name="MoggoUgarModel">Model: %1$s</string>
     <string name="MoggoUgarPickModel">Gemini image model</string>
-    <string name="MoggoUgarNoKey">Add your Gemini API key first.</string>
+    <string name="MoggoUgarNoKey">Sign in to Google or add your Gemini API key first.</string>
     <string name="MoggoUgarHelp">Write what to draw after @ugar, e.g. "@ugar cat in a wizard hat". Attach photos with an @ugar caption or reply to a photo to use it as a reference.</string>
     <string name="MoggoUgarAgain">Again</string>
     <string name="MoggoUgarNetwork">Could not reach Gemini. Check the internet connection and try again.</string>
@@ -477,4 +477,13 @@ Use your own Gemini API key (aistudio.google.com → Get API key). Image models 
     <string name="MoggoUgarQuota">The Gemini quota of this key is used up. Try again later.</string>
     <string name="MoggoUgarNoModel">Model %1$s is not available for this key. Pick another one in the @ugar settings.</string>
     <string name="MoggoUgarNoImage">Gemini returned no picture. %1$s</string>
+    <string name="MoggoUgarGoogleSignIn">Sign in to Google (Gemini subscription)</string>
+    <string name="MoggoUgarGoogleSignedIn">Google account connected · sign out</string>
+    <string name="MoggoUgarKeyOr">or your own API key (used when no account is connected):</string>
+    <string name="MoggoUgarPasteCookies">Google session</string>
+    <string name="MoggoUgarPasteCookiesAbout">If Google refuses the sign-in here: open gemini.google.com in a browser on a computer, copy the Cookie header of any request (DevTools → Network) and paste it.</string>
+    <string name="MoggoUgarPasteCookiesBad">No Google session in these cookies (need __Secure-1PSID).</string>
+    <string name="MoggoUgarSessionExpired">Google session expired or Gemini is not reachable. Check the VPN, or sign in again in the @ugar settings.</string>
+    <string name="MoggoUgarWebLimit">The image limit of your Gemini subscription is used up. Try again later.</string>
+    <string name="MoggoUgarWebBlocked">Google temporarily blocked requests from this IP. Change the VPN server or wait.</string>
 </resources>

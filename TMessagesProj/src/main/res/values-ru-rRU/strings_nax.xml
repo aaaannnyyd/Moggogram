@@ -462,11 +462,11 @@
     <string name="MoggoUgarSettings">Нейросеть @ugar</string>
     <string name="MoggoUgarSettingsAbout">Рисуйте картинки Gemini прямо в чате: напишите «@ugar ваш запрос» и отправьте. Чтобы дать референсы — прикрепите фото с подписью «@ugar …» или ответьте этой командой на фото.
 
-Нужен свой ключ Gemini API (aistudio.google.com → Get API key). Для моделей картинок на ключе должна быть включена оплата.</string>
+Войдите в аккаунт Google, чтобы рисовать по своей подписке Gemini (неофициально: Gemini должен открываться с телефона, в России — через VPN). Или укажите свой ключ Gemini API, для картинок на нём нужна включённая оплата.</string>
     <string name="MoggoUgarKeyHint">Ключ Gemini API</string>
     <string name="MoggoUgarModel">Модель: %1$s</string>
     <string name="MoggoUgarPickModel">Модель Gemini для картинок</string>
-    <string name="MoggoUgarNoKey">Сначала укажите свой ключ Gemini API.</string>
+    <string name="MoggoUgarNoKey">Сначала войдите в аккаунт Google или укажите ключ Gemini API.</string>
     <string name="MoggoUgarHelp">Напишите после @ugar, что нарисовать, например «@ugar кот в шляпе волшебника». Чтобы дать референс — прикрепите фото с подписью @ugar или ответьте командой на фото.</string>
     <string name="MoggoUgarAgain">Ещё раз</string>
     <string name="MoggoUgarNetwork">Не удалось связаться с Gemini. Проверьте интернет и повторите.</string>
@@ -475,4 +475,13 @@
     <string name="MoggoUgarQuota">Квота Gemini на этом ключе закончилась. Попробуйте позже.</string>
     <string name="MoggoUgarNoModel">Модель %1$s недоступна для этого ключа. Выберите другую в настройках @ugar.</string>
     <string name="MoggoUgarNoImage">Gemini не прислал картинку. %1$s</string>
+    <string name="MoggoUgarGoogleSignIn">Войти в Google (подписка Gemini)</string>
+    <string name="MoggoUgarGoogleSignedIn">Аккаунт Google подключён · выйти</string>
+    <string name="MoggoUgarKeyOr">или свой ключ API (если аккаунт не подключён):</string>
+    <string name="MoggoUgarPasteCookies">Сессия Google</string>
+    <string name="MoggoUgarPasteCookiesAbout">Если Google не пускает войти здесь: откройте gemini.google.com в браузере на компьютере, скопируйте заголовок Cookie любого запроса (DevTools → Network) и вставьте сюда.</string>
+    <string name="MoggoUgarPasteCookiesBad">В этих куках нет сессии Google (нужен __Secure-1PSID).</string>
+    <string name="MoggoUgarSessionExpired">Сессия Google истекла или Gemini недоступен. Проверьте VPN или войдите заново в настройках @ugar.</string>
+    <string name="MoggoUgarWebLimit">Лимит картинок по подписке Gemini исчерпан. Попробуйте позже.</string>
+    <string name="MoggoUgarWebBlocked">Google временно заблокировал запросы с этого IP. Смените сервер VPN или подождите.</string>
 </resources>

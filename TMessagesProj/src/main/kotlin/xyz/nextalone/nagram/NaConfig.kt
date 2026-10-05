@@ -990,6 +990,12 @@ object NaConfig {
             ConfigItem.configTypeString,
             ""
         )
+    val moggoGeminiCookies =
+        addConfig(
+            "MoggoGeminiCookies",
+            ConfigItem.configTypeString,
+            ""
+        )
     val moggoGeminiModel =
         addConfig(
             "MoggoGeminiModel",

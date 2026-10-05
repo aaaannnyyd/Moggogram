@@ -7,6 +7,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -39,8 +40,10 @@ import xyz.nextalone.nagram.NaConfig;
 /**
  * Moggogram "@ugar": image generation with the user's own Gemini key, right from the message field.
  * "@ugar prompt" as a message, or as the caption of attached photos (they become references), or as
- * a reply to a photo (also a reference). Requests go through the push gateway because Google
- * blocks the Gemini API for Russian IPs; the key is passed through, never stored there.
+ * a reply to a photo (also a reference). Two ways to pay for it: a Google account signed in here
+ * (its Gemini subscription, see MoggoGeminiWeb) or the user's own API key. API requests go through
+ * the push gateway because Google blocks the Gemini API for Russian IPs; the key is passed
+ * through, never stored there.
  */
 public final class MoggoUgar {
 
@@ -75,7 +78,7 @@ public final class MoggoUgar {
     public static void start(ChatActivity fragment, String prompt, ArrayList<String> refPaths, MessageObject reply) {
         Activity activity = fragment.getParentActivity();
         if (activity == null) return;
-        if (key().isEmpty()) {
+        if (!MoggoGeminiWeb.isSignedIn() && key().isEmpty()) {
             AlertDialog.Builder b = new AlertDialog.Builder(activity);
             b.setTitle(LocaleController.getString(R.string.MoggoUgarTitle));
             b.setMessage(LocaleController.getString(R.string.MoggoUgarNoKey));
@@ -117,6 +120,8 @@ public final class MoggoUgar {
                     if (f != null) allRefs.add(0, f.getAbsolutePath());
                 }
                 result = generate(prompt, allRefs);
+            } catch (MoggoGeminiWeb.UserError e) {
+                result = Result.error(e.getMessage());
             } catch (Exception e) {
                 FileLog.e(e);
                 result = Result.error(LocaleController.getString(R.string.MoggoUgarNetwork));
@@ -180,13 +185,23 @@ public final class MoggoUgar {
     }
 
     private static Result generate(String prompt, ArrayList<String> refs) throws Exception {
+        if (MoggoGeminiWeb.isSignedIn()) {
+            ArrayList<byte[]> images = new ArrayList<>();
+            for (String path : refs) {
+                byte[] jpeg = encodeReference(path);
+                if (jpeg != null) images.add(jpeg);
+            }
+            Result r = new Result();
+            r.file = MoggoGeminiWeb.generate(prompt, images);
+            return r;
+        }
         JSONArray parts = new JSONArray();
         String text = TextUtils.isEmpty(prompt) ? "Improve this image" : prompt;
         parts.put(new JSONObject().put("text", text));
         for (String path : refs) {
-            String b64 = encodeReference(path);
-            if (b64 == null) continue;
-            parts.put(new JSONObject().put("inline_data", new JSONObject().put("mime_type", "image/jpeg").put("data", b64)));
+            byte[] jpeg = encodeReference(path);
+            if (jpeg == null) continue;
+            parts.put(new JSONObject().put("inline_data", new JSONObject().put("mime_type", "image/jpeg").put("data", Base64.encodeToString(jpeg, Base64.NO_WRAP))));
         }
         JSONObject body = new JSONObject()
                 .put("contents", new JSONArray().put(new JSONObject().put("parts", parts)))
@@ -263,7 +278,7 @@ public final class MoggoUgar {
         return "Gemini " + code + ": " + (message.isEmpty() ? response : message);
     }
 
-    private static String encodeReference(String path) {
+    private static byte[] encodeReference(String path) {
         try {
             BitmapFactory.Options bounds = new BitmapFactory.Options();
             bounds.inJustDecodeBounds = true;
@@ -285,7 +300,7 @@ public final class MoggoUgar {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
             bitmap.recycle();
-            return Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+            return out.toByteArray();
         } catch (Throwable e) {
             FileLog.e(e);
             return null;
@@ -342,6 +357,36 @@ public final class MoggoUgar {
         about.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
         layout.addView(about);
 
+        AlertDialog[] dialog = new AlertDialog[1];
+        TextView account = new TextView(activity);
+        account.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        account.setTextColor(Theme.getColor(Theme.key_dialogTextBlue));
+        account.setPadding(0, AndroidUtilities.dp(14), 0, AndroidUtilities.dp(6));
+        account.setText(LocaleController.getString(MoggoGeminiWeb.isSignedIn() ? R.string.MoggoUgarGoogleSignedIn : R.string.MoggoUgarGoogleSignIn));
+        account.setOnClickListener(v -> {
+            if (MoggoGeminiWeb.isSignedIn()) {
+                MoggoGeminiWeb.signOut();
+                account.setText(LocaleController.getString(R.string.MoggoUgarGoogleSignIn));
+                return;
+            }
+            org.telegram.ui.ActionBar.BaseFragment last = org.telegram.ui.LaunchActivity.getLastFragment();
+            if (last == null) return;
+            if (dialog[0] != null) dialog[0].dismiss();
+            last.presentFragment(new org.telegram.ui.MoggoGoogleLoginActivity(() -> showSettings(activity)));
+        });
+        account.setOnLongClickListener(v -> {
+            pasteCookies(activity, () -> account.setText(LocaleController.getString(R.string.MoggoUgarGoogleSignedIn)));
+            return true;
+        });
+        layout.addView(account);
+
+        TextView keyTitle = new TextView(activity);
+        keyTitle.setText(LocaleController.getString(R.string.MoggoUgarKeyOr));
+        keyTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        keyTitle.setTextColor(Theme.getColor(Theme.key_dialogTextGray3));
+        keyTitle.setPadding(0, AndroidUtilities.dp(10), 0, 0);
+        layout.addView(keyTitle);
+
         EditTextBoldCursor keyField = new EditTextBoldCursor(activity);
         keyField.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         keyField.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
@@ -371,6 +416,32 @@ public final class MoggoUgar {
         b.setPositiveButton(LocaleController.getString(R.string.Save), (d, w) -> {
             NaConfig.INSTANCE.getMoggoGeminiKey().setConfigString(keyField.getText().toString().trim());
             NaConfig.INSTANCE.getMoggoGeminiModel().setConfigString(selectedModel[0]);
+        });
+        b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        dialog[0] = b.show();
+    }
+
+    /** Fallback when Google refuses the WebView sign-in: the Cookie header copied from a browser. */
+    private static void pasteCookies(Activity activity, Runnable onSaved) {
+        EditTextBoldCursor field = new EditTextBoldCursor(activity);
+        field.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        field.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        field.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
+        field.setHint("__Secure-1PSID=…; __Secure-1PSIDTS=…");
+        field.setMaxLines(4);
+        field.setLineColors(Theme.getColor(Theme.key_windowBackgroundWhiteInputField), Theme.getColor(Theme.key_windowBackgroundWhiteInputFieldActivated), Theme.getColor(Theme.key_text_RedRegular));
+        FrameLayout frame = new FrameLayout(activity);
+        frame.addView(field, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 24, 0, 24, 0));
+        AlertDialog.Builder b = new AlertDialog.Builder(activity);
+        b.setTitle(LocaleController.getString(R.string.MoggoUgarPasteCookies));
+        b.setMessage(LocaleController.getString(R.string.MoggoUgarPasteCookiesAbout));
+        b.setView(frame);
+        b.setPositiveButton(LocaleController.getString(R.string.Save), (d, w) -> {
+            if (MoggoGeminiWeb.saveCookies(field.getText().toString())) {
+                onSaved.run();
+            } else {
+                android.widget.Toast.makeText(activity, LocaleController.getString(R.string.MoggoUgarPasteCookiesBad), android.widget.Toast.LENGTH_LONG).show();
+            }
         });
         b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         b.show();
