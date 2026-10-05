@@ -20104,9 +20104,9 @@ public class ChatActivity extends BaseFragment implements
                     } else {
                         canForwardMessagesCount--;
                     }
-                    if (messageObject.isMusic() && !noforwards) {
+                    if (messageObject.isMusic()) {
                         canSaveMusicCount--;
-                    } else if (messageObject.isDocument() && !noforwards) {
+                    } else if (messageObject.isDocument() && !messageObject.isRoundOnce() && !messageObject.isVoiceOnce()) {
                         canSaveDocumentsCount--;
                     } else {
                         cantSaveMessagesCount--;
@@ -20141,9 +20141,9 @@ public class ChatActivity extends BaseFragment implements
                     } else {
                         canForwardMessagesCount++;
                     }
-                    if (messageObject.isMusic() && !noforwards) {
+                    if (messageObject.isMusic()) {
                         canSaveMusicCount++;
-                    } else if (messageObject.isDocument() && !messageObject.isRoundOnce() && !messageObject.isVoiceOnce() && !noforwards) {
+                    } else if (messageObject.isDocument() && !messageObject.isRoundOnce() && !messageObject.isVoiceOnce()) {
                         canSaveDocumentsCount++;
                     } else {
                         cantSaveMessagesCount++;

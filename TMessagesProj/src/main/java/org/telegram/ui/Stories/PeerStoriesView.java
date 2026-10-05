@@ -7212,18 +7212,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
             if (uploadingStory != null) {
                 return uploadingStory.entry.allowScreenshots;
             }
-            if (storyItem != null) {
-                if (storyItem.noforwards) {
-                    return false;
-                }
-                if (storyItem.pinned) {
-                    final long did = storyItem.dialogId;
-                    final TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-did);
-                    if (chat != null && chat.noforwards) {
-                        return false;
-                    }
-                }
-            }
+            // Moggogram (like Nagram for chats): copy protection doesn't block screenshots of stories
             return true;
         }
     }
