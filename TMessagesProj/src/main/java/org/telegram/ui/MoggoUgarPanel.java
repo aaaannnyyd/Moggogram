@@ -40,6 +40,7 @@ public class MoggoUgarPanel extends FrameLayout implements MoggoUgar.Listener {
     private final Theme.ResourcesProvider resourcesProvider;
     private final TextView title;
     private final LinearLayout row;
+    private final LinearLayout styles;
     private final HashMap<File, Bitmap> thumbs = new HashMap<>();
     private final Runnable ticker = this::tick;
     private TextView timerView;
@@ -77,7 +78,37 @@ public class MoggoUgarPanel extends FrameLayout implements MoggoUgar.Listener {
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10), 0);
         scroll.addView(row, new HorizontalScrollView.LayoutParams(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
-        content.addView(scroll, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, THUMB, 0, 0, 0, 10));
+        content.addView(scroll, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, THUMB, 0, 0, 0, 8));
+
+        HorizontalScrollView stylesScroll = new HorizontalScrollView(context);
+        stylesScroll.setHorizontalScrollBarEnabled(false);
+        styles = new LinearLayout(context);
+        styles.setOrientation(LinearLayout.HORIZONTAL);
+        styles.setPadding(AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10), 0);
+        stylesScroll.addView(styles, new HorizontalScrollView.LayoutParams(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
+        content.addView(stylesScroll, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 30, 0, 0, 0, 10));
+        for (int i = 0; i < MoggoUgar.STYLE_NAMES.length; i++) {
+            final int style = i;
+            TextView chip = new TextView(context);
+            chip.setText(LocaleController.getString(MoggoUgar.STYLE_NAMES[i]));
+            chip.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+            chip.setGravity(Gravity.CENTER);
+            chip.setPadding(AndroidUtilities.dp(12), 0, AndroidUtilities.dp(12), 0);
+            chip.setOnClickListener(v -> MoggoUgar.setStyle(MoggoUgar.jobKey(fragment), style));
+            LinearLayout.LayoutParams lp = LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 30);
+            lp.rightMargin = AndroidUtilities.dp(6);
+            styles.addView(chip, lp);
+        }
+    }
+
+    private void updateStyles(int selected) {
+        for (int i = 0; i < styles.getChildCount(); i++) {
+            TextView chip = (TextView) styles.getChildAt(i);
+            boolean on = i == selected;
+            int accent = color(Theme.key_featuredStickers_addButton);
+            chip.setTextColor(on ? 0xffffffff : color(Theme.key_windowBackgroundWhiteBlackText));
+            chip.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(15), on ? accent : Theme.multAlpha(color(Theme.key_windowBackgroundWhiteGrayText), 0.12f)));
+        }
     }
 
     public void setOnVisibilityChanged(Runnable r) {
@@ -131,7 +162,8 @@ public class MoggoUgarPanel extends FrameLayout implements MoggoUgar.Listener {
             thumbs.clear();
             return;
         }
-        String prompt = TextUtils.isEmpty(job.prompt) ? "@ugar" : "@ugar " + job.prompt;
+        updateStyles(job.style);
+        String prompt = (job.sticker ? "@ugar стикер " : "@ugar ") + (job.prompt == null ? "" : job.prompt);
         boolean hint = !job.images.isEmpty() && !job.isRunning();
         title.setText(hint ? LocaleController.getString(R.string.MoggoUgarPanelHint) : prompt);
 

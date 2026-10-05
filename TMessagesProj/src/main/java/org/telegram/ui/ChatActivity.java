@@ -459,6 +459,10 @@ public class ChatActivity extends BaseFragment implements
     private final static int moggo_download_media = 2090;
     private final static int moggo_chat_stats = 2091;
     private final static int moggo_chat_archive = 2092;
+    private final static int moggo_chat_summary = 2093;
+    private final static int moggo_ugar_edit = 2094;
+    private int moggoReadMaxAtOpen;
+    private int moggoUnreadAtOpen;
 
     // ---- Moggogram @ugar (Gemini image generation) ----
 
@@ -485,7 +489,14 @@ public class ChatActivity extends BaseFragment implements
         return true;
     }
 
-    public void moggoSendGenerated(String path, MessageObject replyTo) {
+    public void moggoSendGenerated(String path, MessageObject replyTo, boolean sticker) {
+        if (sticker) {
+            SendMessagesHelper.prepareSendingDocument(getAccountInstance(), path, path, null, null, "image/webp", dialog_id, replyTo, getThreadMessage(), null, null, null, true, 0, null, getMessageChatSendParams(), false);
+            if (replyTo != null && replyTo == replyingMessageObject) {
+                hideFieldPanel(false);
+            }
+            return;
+        }
         ArrayList<SendMessagesHelper.SendingMediaInfo> photos = new ArrayList<>();
         SendMessagesHelper.SendingMediaInfo info = new SendMessagesHelper.SendingMediaInfo();
         info.path = path;
@@ -4993,6 +5004,7 @@ public class ChatActivity extends BaseFragment implements
             if (currentEncryptedChat == null && chatMode == 0) headerItem.lazilyAddSubItem(moggo_download_media, R.drawable.msg_download, getString(R.string.MoggoDownloadMedia));
             if (currentEncryptedChat == null && chatMode == 0) headerItem.lazilyAddSubItem(moggo_chat_stats, R.drawable.msg_stats, getString(R.string.MoggoChatStats));
             if (currentEncryptedChat == null && chatMode == 0) headerItem.lazilyAddSubItem(moggo_chat_archive, R.drawable.msg_archive, getString(R.string.MoggoArchive));
+            if (currentEncryptedChat == null && chatMode == 0 && !isTopic) headerItem.lazilyAddSubItem(moggo_chat_summary, R.drawable.msg_list, getString(R.string.MoggoSummary));
             if (NaConfig.INSTANCE.getChatMenuItemViewDeleted().Bool() && NaConfig.INSTANCE.getEnableSaveDeletedMessages().Bool()) headerItem.lazilyAddSubItem(nkbtn_viewDeleted, R.drawable.msg_view_file, getString(R.string.ViewDeleted));
             if (NaConfig.INSTANCE.getChatMenuItemClearDeleted().Bool() && NaConfig.INSTANCE.getEnableSaveDeletedMessages().Bool()) headerItem.lazilyAddSubItem(nkbtn_clearDeleted, R.drawable.msg_clear, getString(R.string.ClearDeleted));
             if (!isTopic) {
@@ -7802,6 +7814,11 @@ public class ChatActivity extends BaseFragment implements
         {
             final int indexToAdd = chatActivityFadeView != null ? contentView.indexOfChild(chatActivityFadeView) : -1;
             contentView.addView(mentionContainer, indexToAdd, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 110, Gravity.LEFT | Gravity.BOTTOM));
+        }
+        TLRPC.Dialog moggoDialog = getMessagesController().dialogs_dict.get(dialog_id);
+        if (moggoDialog != null) {
+            moggoReadMaxAtOpen = moggoDialog.read_inbox_max_id;
+            moggoUnreadAtOpen = moggoDialog.unread_count;
         }
         if (!isInPreviewMode()) {
             moggoUgarPanel = new MoggoUgarPanel(context, this, getResourceProvider());
@@ -46713,6 +46730,9 @@ public class ChatActivity extends BaseFragment implements
         } else if (id == nkbtn_repeatascopy) {
             repeatMessage(false, true);
             clearSelectionMode();
+        } else if (id == moggo_chat_summary) {
+            String summaryTitle = currentUser != null ? UserObject.getUserName(currentUser) : currentChat != null ? currentChat.title : String.valueOf(dialog_id);
+            org.telegram.messenger.MoggoChatSummary.show(this, dialog_id, summaryTitle, moggoReadMaxAtOpen, moggoUnreadAtOpen);
         } else if (id == moggo_chat_archive) {
             String archiveTitle = currentUser != null ? UserObject.getUserName(currentUser) : currentChat != null ? currentChat.title : String.valueOf(dialog_id);
             org.telegram.ui.Components.MoggoChatArchiveAlert.show(this, dialog_id, archiveTitle);
@@ -46917,6 +46937,10 @@ public class ChatActivity extends BaseFragment implements
                 break;
             case nkbtn_detail: {
                 presentFragment(new MessageDetailsActivity(selectedObject, selectedObjectGroup));
+                break;
+            }
+            case moggo_ugar_edit: {
+                org.telegram.messenger.MoggoUgar.askEdit(this, selectedObject);
                 break;
             }
             case nkbtn_view_history: {
@@ -49580,6 +49604,11 @@ public class ChatActivity extends BaseFragment implements
             icons.add(R.drawable.outline_revert_24);
         }
 
+        if (currentEncryptedChat == null && org.telegram.messenger.MoggoUgar.canEdit(primaryMessage)) {
+            items.add(getString(R.string.MoggoUgarEdit));
+            options.add(moggo_ugar_edit);
+            icons.add(R.drawable.msg_photo_settings_solar);
+        }
         if (NekoConfig.showMessageDetails.Bool()) {
             items.add(LocaleController.getString(R.string.MessageDetails));
             options.add(nkbtn_detail);

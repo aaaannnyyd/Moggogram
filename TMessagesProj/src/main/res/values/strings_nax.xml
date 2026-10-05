@@ -490,4 +490,23 @@ Sign in to Google to draw with your Gemini subscription (unofficial: Gemini must
     <string name="MoggoUgarDrawing">Drawing… %1$d s</string>
     <string name="MoggoUgarPanelHint">Tap a picture to send, hold to view</string>
     <string name="MoggoUgarFailed">Failed, tap for details</string>
+    <string name="MoggoUgarEdit">@ugar: change picture</string>
+    <string name="MoggoUgarEditHint">What to change, e.g. make it night</string>
+    <string name="MoggoUgarDraw">Draw</string>
+    <string name="MoggoUgarHistory">@ugar history</string>
+    <string name="MoggoUgarHistoryEmpty">Pictures drawn with @ugar will appear here.</string>
+    <string name="MoggoUgarCopyPrompt">Copy prompt</string>
+    <string name="MoggoUgarStyleNone">No style</string>
+    <string name="MoggoUgarStyleAnime">Anime</string>
+    <string name="MoggoUgarStylePhoto">Photo</string>
+    <string name="MoggoUgarStyle3D">3D</string>
+    <string name="MoggoUgarStylePixel">Pixel art</string>
+    <string name="MoggoUgarStyleMeme">Meme</string>
+    <string name="MoggoUgarStyleWatercolor">Watercolor</string>
+    <string name="MoggoUgarStyleComic">Comic</string>
+    <string name="MoggoSummary">What did I miss</string>
+    <string name="MoggoSummaryTitle">What you missed</string>
+    <string name="MoggoSummaryRecentTitle">Recent messages in short</string>
+    <string name="MoggoSummaryEmpty">No messages to retell.</string>
+    <string name="MoggoSummaryLoadFailed">Could not load the messages of this chat.</string>
 </resources>

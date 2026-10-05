@@ -257,6 +257,44 @@ public final class MoggoGeminiWeb {
             text = "Generate an image: " + prompt;
         }
 
+        Parsed parsed = stream(init, text, files);
+        if (parsed.imageUrl == null) {
+            throwFor(parsed);
+            throw new UserError(LocaleController.formatString(R.string.MoggoUgarNoImage, parsed.text == null ? "" : parsed.text));
+        }
+
+        String imageUrl = parsed.imageUrl;
+        if (imageUrl.contains("=s1024-rj")) imageUrl = imageUrl.replace("=s1024-rj", "=s2048-rj");
+        else if (!imageUrl.contains("=s2048-rj")) imageUrl += "=s2048-rj";
+        Map<String, String> ih = new LinkedHashMap<>();
+        ih.put("Referer", "https://gemini.google.com/");
+        Response image = request("GET", imageUrl, ih, null);
+        if (image.code != 200 || image.body.length == 0) throw new UserError("Gemini image " + image.code);
+        File file = new File(AndroidUtilities.getCacheDir(), "ugar_" + System.currentTimeMillis() + ".jpg");
+        try (FileOutputStream out = new FileOutputStream(file)) {
+            out.write(image.body);
+        }
+        return file;
+    }
+
+    /** Text answer of Gemini (chat summaries). */
+    public static String ask(String prompt) throws Exception {
+        if (!isSignedIn()) throw new UserError(LocaleController.getString(R.string.MoggoUgarSessionExpired));
+        Parsed parsed = stream(init(), prompt, null);
+        if (TextUtils.isEmpty(parsed.text)) {
+            throwFor(parsed);
+            throw new UserError(LocaleController.formatString(R.string.MoggoUgarNoImage, ""));
+        }
+        return parsed.text;
+    }
+
+    private static void throwFor(Parsed parsed) throws UserError {
+        if (parsed.errorCode == 1037) throw new UserError(LocaleController.getString(R.string.MoggoUgarWebLimit));
+        if (parsed.errorCode == 1060) throw new UserError(LocaleController.getString(R.string.MoggoUgarWebBlocked));
+        if (parsed.errorCode != 0) throw new UserError("Gemini error " + parsed.errorCode);
+    }
+
+    private static Parsed stream(Init init, String text, JSONArray files) throws Exception {
         JSONArray message = new JSONArray().put(text).put(0).put(JSONObject.NULL).put(files == null ? JSONObject.NULL : files)
                 .put(JSONObject.NULL).put(JSONObject.NULL).put(0);
         String uuid = UUID.randomUUID().toString().toUpperCase();
@@ -298,27 +336,7 @@ public final class MoggoGeminiWeb {
         Response r = request("POST", url.toString(), h, form.getBytes(StandardCharsets.UTF_8));
         if (r.code == 401 || r.code == 403) throw new UserError(LocaleController.getString(R.string.MoggoUgarSessionExpired));
         if (r.code != 200) throw new UserError("Gemini " + r.code);
-
-        Parsed parsed = parse(r.text());
-        if (parsed.imageUrl == null) {
-            if (parsed.errorCode == 1037) throw new UserError(LocaleController.getString(R.string.MoggoUgarWebLimit));
-            if (parsed.errorCode == 1060) throw new UserError(LocaleController.getString(R.string.MoggoUgarWebBlocked));
-            if (parsed.errorCode != 0) throw new UserError("Gemini error " + parsed.errorCode);
-            throw new UserError(LocaleController.formatString(R.string.MoggoUgarNoImage, parsed.text == null ? "" : parsed.text));
-        }
-
-        String imageUrl = parsed.imageUrl;
-        if (imageUrl.contains("=s1024-rj")) imageUrl = imageUrl.replace("=s1024-rj", "=s2048-rj");
-        else if (!imageUrl.contains("=s2048-rj")) imageUrl += "=s2048-rj";
-        Map<String, String> ih = new LinkedHashMap<>();
-        ih.put("Referer", "https://gemini.google.com/");
-        Response image = request("GET", imageUrl, ih, null);
-        if (image.code != 200 || image.body.length == 0) throw new UserError("Gemini image " + image.code);
-        File file = new File(AndroidUtilities.getCacheDir(), "ugar_" + System.currentTimeMillis() + ".jpg");
-        try (FileOutputStream out = new FileOutputStream(file)) {
-            out.write(image.body);
-        }
-        return file;
+        return parse(r.text());
     }
 
     // ---------------------------------------------------------------- response parsing

@@ -488,4 +488,23 @@
     <string name="MoggoUgarDrawing">Рисую… %1$d с</string>
     <string name="MoggoUgarPanelHint">Тап — отправить, удержание — посмотреть</string>
     <string name="MoggoUgarFailed">Не вышло, тап — подробнее</string>
+    <string name="MoggoUgarEdit">@ugar: изменить картинку</string>
+    <string name="MoggoUgarEditHint">Что изменить, например «сделай ночь»</string>
+    <string name="MoggoUgarDraw">Нарисовать</string>
+    <string name="MoggoUgarHistory">История @ugar</string>
+    <string name="MoggoUgarHistoryEmpty">Здесь появятся картинки, нарисованные через @ugar.</string>
+    <string name="MoggoUgarCopyPrompt">Копировать запрос</string>
+    <string name="MoggoUgarStyleNone">Без стиля</string>
+    <string name="MoggoUgarStyleAnime">Аниме</string>
+    <string name="MoggoUgarStylePhoto">Фото</string>
+    <string name="MoggoUgarStyle3D">3D</string>
+    <string name="MoggoUgarStylePixel">Пиксель-арт</string>
+    <string name="MoggoUgarStyleMeme">Мем</string>
+    <string name="MoggoUgarStyleWatercolor">Акварель</string>
+    <string name="MoggoUgarStyleComic">Комикс</string>
+    <string name="MoggoSummary">Что я пропустил</string>
+    <string name="MoggoSummaryTitle">Что вы пропустили</string>
+    <string name="MoggoSummaryRecentTitle">Последние сообщения вкратце</string>
+    <string name="MoggoSummaryEmpty">Нечего пересказывать.</string>
+    <string name="MoggoSummaryLoadFailed">Не удалось загрузить сообщения этого чата.</string>
 </resources>

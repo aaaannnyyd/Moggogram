@@ -87,6 +87,12 @@ public final class MoggoUgar {
             fragment.showDialog(b.create());
             return;
         }
+        boolean sticker = false;
+        String stickerPrompt = stripStickerWord(prompt);
+        if (stickerPrompt != null) {
+            sticker = true;
+            prompt = stickerPrompt;
+        }
         if (TextUtils.isEmpty(prompt) && (refPaths == null || refPaths.isEmpty()) && !isPhoto(reply)) {
             AlertDialog.Builder b = new AlertDialog.Builder(activity);
             b.setTitle(LocaleController.getString(R.string.MoggoUgarTitle));
@@ -105,9 +111,54 @@ public final class MoggoUgar {
         job.refs = refPaths == null ? new ArrayList<>() : new ArrayList<>(refPaths);
         job.reply = reply;
         job.variants = variants();
+        job.sticker = sticker;
         Job old = JOBS.put(job.key, job);
         if (old != null) old.cancelled = true;
         runJob(job);
+    }
+
+    /** "стикер кот" / "sticker cat" -> "кот"; null when the prompt does not ask for a sticker. */
+    private static String stripStickerWord(String prompt) {
+        if (prompt == null) return null;
+        String lower = prompt.toLowerCase(Locale.ROOT);
+        for (String word : new String[]{"стикер", "sticker"}) {
+            if (lower.startsWith(word) && (lower.length() == word.length() || Character.isWhitespace(lower.charAt(word.length())) || lower.charAt(word.length()) == ':')) {
+                String rest = prompt.substring(word.length()).trim();
+                if (rest.startsWith(":")) rest = rest.substring(1).trim();
+                return rest;
+            }
+        }
+        return null;
+    }
+
+    /** Message menu "@ugar: edit": asks what to change and uses the picture as the reference. */
+    public static void askEdit(ChatActivity fragment, MessageObject message) {
+        Activity activity = fragment.getParentActivity();
+        if (activity == null || !isPhoto(message)) return;
+        EditTextBoldCursor field = new EditTextBoldCursor(activity);
+        field.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        field.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        field.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
+        field.setHint(LocaleController.getString(R.string.MoggoUgarEditHint));
+        field.setMaxLines(4);
+        field.setLineColors(Theme.getColor(Theme.key_windowBackgroundWhiteInputField), Theme.getColor(Theme.key_windowBackgroundWhiteInputFieldActivated), Theme.getColor(Theme.key_text_RedRegular));
+        FrameLayout frame = new FrameLayout(activity);
+        frame.addView(field, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 24, 6, 24, 0));
+        AlertDialog.Builder b = new AlertDialog.Builder(activity);
+        b.setTitle(LocaleController.getString(R.string.MoggoUgarEdit));
+        b.setView(frame);
+        b.setPositiveButton(LocaleController.getString(R.string.MoggoUgarDraw), (d, w) -> start(fragment, field.getText().toString().trim(), null, message));
+        b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        AlertDialog dialog = b.create();
+        dialog.setOnShowListener(d -> {
+            field.requestFocus();
+            AndroidUtilities.showKeyboard(field);
+        });
+        fragment.showDialog(dialog);
+    }
+
+    public static boolean canEdit(MessageObject message) {
+        return isPhoto(message) && (message.messageOwner == null || !message.messageOwner.noforwards);
     }
 
     private static boolean isPhoto(MessageObject m) {
@@ -128,6 +179,8 @@ public final class MoggoUgar {
         public final ArrayList<String> errors = new ArrayList<>();
         public int pending;
         public long startedAt;
+        public boolean sticker;
+        public int style;
         volatile boolean cancelled;
         int generation;
 
@@ -178,6 +231,35 @@ public final class MoggoUgar {
         }
     }
 
+    // ---------------------------------------------------------------- styles
+
+    public static final int[] STYLE_NAMES = {R.string.MoggoUgarStyleNone, R.string.MoggoUgarStyleAnime, R.string.MoggoUgarStylePhoto,
+            R.string.MoggoUgarStyle3D, R.string.MoggoUgarStylePixel, R.string.MoggoUgarStyleMeme, R.string.MoggoUgarStyleWatercolor, R.string.MoggoUgarStyleComic};
+    private static final String[] STYLE_PROMPTS = {null, "anime illustration, cel shading, vivid colors", "photorealistic photo, natural light, high detail",
+            "3D render, Pixar-like, soft studio lighting", "pixel art, 16-bit, crisp pixels", "funny meme picture, exaggerated expressions",
+            "watercolor painting, soft paper texture", "comic book art, bold ink lines, halftone shading"};
+
+    public static void setStyle(String key, int style) {
+        Job job = JOBS.get(key);
+        if (job == null || style < 0 || style >= STYLE_PROMPTS.length) return;
+        job.style = style;
+        again(key);
+    }
+
+    private static String composePrompt(Job job, boolean hasRefs) {
+        String p = job.prompt == null ? "" : job.prompt.trim();
+        String style = STYLE_PROMPTS[job.style];
+        if (style != null) {
+            p = p.isEmpty() ? "Redraw the attached image. Style: " + style : p + ". Style: " + style;
+        }
+        if (job.sticker) {
+            String subject = p.isEmpty() ? (hasRefs ? "the main subject of the attached image" : "a funny cat") : p;
+            p = "A Telegram sticker: " + subject + ". One character or object, bold clean outline, centered and fully visible, "
+                    + "isolated on a plain pure white background, no text, no shadow, no frame.";
+        }
+        return p;
+    }
+
     public static int variants() {
         return Math.max(1, Math.min(4, NaConfig.INSTANCE.getMoggoUgarVariants().Int()));
     }
@@ -202,7 +284,15 @@ public final class MoggoUgar {
                 if (job.cancelled || job.generation != generation) return;
                 Result result;
                 try {
-                    result = generate(job.prompt, refs);
+                    result = generate(composePrompt(job, !refs.isEmpty()), refs);
+                    if (result.file != null && job.sticker) {
+                        File sticker = MoggoUgarSticker.make(result.file);
+                        if (sticker != null) {
+                            result.file.delete();
+                            result.file = sticker;
+                        }
+                    }
+                    if (result.file != null) result.file = MoggoUgarHistory.add(result.file, job.prompt, job.sticker);
                 } catch (MoggoGeminiWeb.UserError e) {
                     result = Result.error(e.getMessage());
                 } catch (Exception e) {
@@ -225,8 +315,68 @@ public final class MoggoUgar {
     public static void send(ChatActivity fragment, File file) {
         String key = jobKey(fragment);
         Job job = JOBS.get(key);
-        fragment.moggoSendGenerated(file.getAbsolutePath(), job == null ? null : job.reply);
+        fragment.moggoSendGenerated(file.getAbsolutePath(), job == null ? null : job.reply, isStickerFile(file));
         dismiss(key);
+    }
+
+    public static boolean isStickerFile(File file) {
+        return file.getName().endsWith(".webp");
+    }
+
+    /** Sends a picture (or sticker) from the history to any chat. */
+    public static void sendToDialog(int account, long dialogId, File file, boolean sticker, boolean notify, int scheduleDate) {
+        AccountInstance accountInstance = AccountInstance.getInstance(account);
+        SendMessageChatArguments args = new SendMessageChatArguments.Builder().build();
+        if (sticker) {
+            SendMessagesHelper.prepareSendingDocument(accountInstance, file.getAbsolutePath(), file.getAbsolutePath(), null, null, "image/webp", dialogId, null, null, null, null, null, notify, scheduleDate, null, args, false);
+        } else {
+            ArrayList<SendMessagesHelper.SendingMediaInfo> photos = new ArrayList<>();
+            SendMessagesHelper.SendingMediaInfo info = new SendMessagesHelper.SendingMediaInfo();
+            info.path = file.getAbsolutePath();
+            photos.add(info);
+            SendMessagesHelper.prepareSendingMedia(accountInstance, photos, dialogId, null, null, null, null, false, false, null, notify, scheduleDate, 0, 0, false, null, args, 0, false, 0, 0, null);
+        }
+    }
+
+    // ---------------------------------------------------------------- text (chat summaries)
+
+    private static final String[] TEXT_MODELS = {"gemini-flash-latest", "gemini-flash-lite-latest"};
+
+    /** Text answer from Gemini: the signed-in account if any, else the API key (text models are free there). */
+    public static String askText(String prompt) throws Exception {
+        if (MoggoGeminiWeb.isSignedIn()) return MoggoGeminiWeb.ask(prompt);
+        if (key().isEmpty()) throw new MoggoGeminiWeb.UserError(LocaleController.getString(R.string.MoggoUgarNoKey));
+        String base = MoggoPushGateway.base();
+        if (base == null) throw new MoggoGeminiWeb.UserError(LocaleController.getString(R.string.MoggoUgarNetwork));
+        JSONObject body = new JSONObject().put("contents", new JSONArray().put(new JSONObject().put("parts", new JSONArray().put(new JSONObject().put("text", prompt)))));
+        String lastError = LocaleController.getString(R.string.MoggoUgarNetwork);
+        for (String model : TEXT_MODELS) {
+            HttpURLConnection c = (HttpURLConnection) new URL(base + "gemini/" + model).openConnection();
+            try {
+                c.setRequestMethod("POST");
+                c.setDoOutput(true);
+                c.setConnectTimeout(15000);
+                c.setReadTimeout(120000);
+                c.setRequestProperty("Content-Type", "application/json");
+                c.setRequestProperty("X-Gemini-Key", key());
+                try (OutputStream out = c.getOutputStream()) {
+                    out.write(body.toString().getBytes(StandardCharsets.UTF_8));
+                }
+                int code = c.getResponseCode();
+                String response = read(code >= 400 ? c.getErrorStream() : c.getInputStream());
+                if (code == 200) {
+                    JSONArray parts = new JSONObject(response).getJSONArray("candidates").getJSONObject(0).getJSONObject("content").getJSONArray("parts");
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < parts.length(); i++) sb.append(parts.getJSONObject(i).optString("text"));
+                    return sb.toString().trim();
+                }
+                lastError = explainError(code, response);
+                if (code != 503 && code != 404 && code != 429 && code != 500) break;
+            } finally {
+                c.disconnect();
+            }
+        }
+        throw new MoggoGeminiWeb.UserError(lastError);
     }
 
     public static void showPreview(ChatActivity fragment, File file) {
@@ -515,6 +665,19 @@ public final class MoggoUgar {
             variantsView.setText(LocaleController.formatString(R.string.MoggoUgarVariants, selectedVariants[0]));
         });
         layout.addView(variantsView);
+
+        TextView historyView = new TextView(activity);
+        historyView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        historyView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue));
+        historyView.setPadding(0, AndroidUtilities.dp(8), 0, AndroidUtilities.dp(6));
+        historyView.setText(LocaleController.getString(R.string.MoggoUgarHistory));
+        historyView.setOnClickListener(v -> {
+            org.telegram.ui.ActionBar.BaseFragment last = org.telegram.ui.LaunchActivity.getLastFragment();
+            if (last == null) return;
+            if (dialog[0] != null) dialog[0].dismiss();
+            last.presentFragment(new org.telegram.ui.MoggoUgarHistoryActivity());
+        });
+        layout.addView(historyView);
 
         AlertDialog.Builder b = new AlertDialog.Builder(activity);
         b.setTitle(LocaleController.getString(R.string.MoggoUgarSettings));
