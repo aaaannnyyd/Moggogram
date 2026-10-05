@@ -28,6 +28,7 @@ public class GcmPushListenerService extends FirebaseMessagingService {
         long time = message.getSentTime();
 
         FileLog.d("FCM received data: " + data + " from: " + from);
+        if (MoggoPushGateway.handleMessage(data, time)) return;
 
         PushListenerController.processRemoteMessage(PushListenerController.PUSH_TYPE_FIREBASE, data.get("p"), time);
     }
@@ -40,12 +41,16 @@ public class GcmPushListenerService extends FirebaseMessagingService {
                 FileLog.d("Refreshed FCM token: " + token);
             }
             ApplicationLoader.postInitApplication();
-            PushListenerController.sendRegistrationToServer(PushListenerController.PUSH_TYPE_FIREBASE, token);
+            if (MoggoPushGateway.isConfigured()) {
+                MoggoPushGateway.registerToken(token);
+            } else {
+                PushListenerController.sendRegistrationToServer(PushListenerController.PUSH_TYPE_FIREBASE, token);
+            }
         });
     }
 
     private static boolean isGooglePushDisabled() {
-        int pushServiceType = NaConfig.getPreferences().getInt(NaConfig.INSTANCE.getPushServiceType().getKey(), 1);
+        int pushServiceType = NaConfig.INSTANCE.getPushServiceType().Int();
         return pushServiceType != 1 && pushServiceType != 3;
     }
 }

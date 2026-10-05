@@ -302,6 +302,7 @@ public class ApplicationLoader extends Application {
 
         // init fcm
         MoggoPushFix.migrateIfNeeded();
+        MoggoPushFix.switchToGatewayIfPossible();
         MoggoPushFix.enablePushConnection();
         initPushServices();
         FileLog.d("app initied");

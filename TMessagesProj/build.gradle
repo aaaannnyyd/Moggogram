@@ -131,6 +131,8 @@ android {
         buildConfigField 'int', 'APP_ID', appId
         buildConfigField 'String', 'APP_HASH', '"' + appHash + '"'
         buildConfigField 'long', 'BUILD_TIMESTAMP', buildTimestamp + 'L'
+        def moggoPushGateway = (properties != null ? properties.getProperty('MOGGO_PUSH_GATEWAY') : null) ?: System.getenv('MOGGO_PUSH_GATEWAY') ?: ''
+        buildConfigField 'String', 'MOGGO_PUSH_GATEWAY', '"' + moggoPushGateway + '"'
 
         externalNativeBuild {
             cmake {

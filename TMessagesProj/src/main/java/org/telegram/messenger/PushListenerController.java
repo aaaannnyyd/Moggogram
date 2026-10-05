@@ -1748,11 +1748,12 @@ public class PushListenerController {
             int serviceType = NaConfig.INSTANCE.getPushServiceType().Int();
             boolean googlePush = serviceType == 1 || serviceType == 3;
             boolean unifiedPushAvailable = serviceType == 2 && UnifiedPush.getAckDistributor(ApplicationLoader.applicationContext) != null;
-            int expectedPushType = serviceType == 2 ? PUSH_TYPE_WEB : PUSH_TYPE_FIREBASE;
+            boolean gatewayPush = googlePush && MoggoPushGateway.isConfigured();
+            int expectedPushType = serviceType == 2 || gatewayPush ? PUSH_TYPE_WEB : PUSH_TYPE_FIREBASE;
             if ((!googlePush && !unifiedPushAvailable) || SharedConfig.pushType != expectedPushType) {
                 unregisterCurrentPushInternal();
             }
-            if (!unifiedPushAvailable) {
+            if (!unifiedPushAvailable && !gatewayPush) {
                 unregisterSimplePush();
             }
             if (serviceType != 2) {
@@ -1815,7 +1816,8 @@ public class PushListenerController {
     private static boolean isPushTypeDisabled(@PushType int pushType) {
         int serviceType = NaConfig.INSTANCE.getPushServiceType().Int();
         if (pushType == PUSH_TYPE_WEB || pushType == PUSH_TYPE_SIMPLE) {
-            return serviceType != 2;
+            boolean gatewayPush = (serviceType == 1 || serviceType == 3) && MoggoPushGateway.isConfigured();
+            return serviceType != 2 && !gatewayPush;
         }
         return serviceType != 1 && serviceType != 3;
     }

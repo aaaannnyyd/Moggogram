@@ -213,6 +213,13 @@ public class UnifiedPushService extends PushService {
         }
     }
 
+    /** {pkcs8 private, raw public, auth secret}, generated on first use; null if key generation failed. */
+    public static synchronized byte[][] getOrCreateWebPushKeys() {
+        ensureWebPushKeys();
+        if (webPushPrivateKey == null || webPushPublicKey == null || webPushAuthSecret == null) return null;
+        return new byte[][]{webPushPrivateKey, webPushPublicKey, webPushAuthSecret};
+    }
+
     private static synchronized void ensureWebPushKeys() {
         loadWebPushKeys();
         if (webPushPrivateKey != null && webPushPublicKey != null && webPushAuthSecret != null) {

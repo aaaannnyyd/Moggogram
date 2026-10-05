@@ -21,7 +21,8 @@ public class GooglePushListenerServiceProvider implements PushListenerController
 
     @Override
     public int getPushType() {
-        return PushListenerController.PUSH_TYPE_FIREBASE;
+        // Moggogram: with our gateway, Telegram talks Web Push and FCM is only the transport
+        return MoggoPushGateway.isConfigured() ? PushListenerController.PUSH_TYPE_WEB : PushListenerController.PUSH_TYPE_FIREBASE;
     }
 
     @Override
@@ -49,7 +50,11 @@ public class GooglePushListenerServiceProvider implements PushListenerController
                             }
                             String token = task.getResult();
                             if (!TextUtils.isEmpty(token)) {
-                                PushListenerController.sendRegistrationToServer(getPushType(), token);
+                                if (MoggoPushGateway.isConfigured()) {
+                                    MoggoPushGateway.registerToken(token);
+                                } else {
+                                    PushListenerController.sendRegistrationToServer(getPushType(), token);
+                                }
                             }
                         });
             } catch (Throwable e) {

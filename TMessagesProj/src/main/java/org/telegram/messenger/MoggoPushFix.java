@@ -25,6 +25,7 @@ public final class MoggoPushFix {
     private static final String PREFS = "moggo_push";
     private static final String KEY_MIGRATED = "migrated_v1";
     private static final String KEY_BATTERY_ASKED = "battery_asked_v1";
+    private static final String KEY_GATEWAY = "gateway_v1";
 
     private MoggoPushFix() {
     }
@@ -50,6 +51,31 @@ public final class MoggoPushFix {
         ApplicationLoader.resetPushProvider();
         PushListenerController.reconcilePushRegistration();
         FileLog.d("moggogram: push service type switched from " + type + " to in-app keep-alive");
+    }
+
+    /**
+     * With our push gateway compiled in and Google Play services present, Google push works like
+     * in official Telegram: move every non-UnifiedPush install to it once and stop the keep-alive
+     * foreground service. Devices without Play services stay on the in-app connection.
+     */
+    public static void switchToGatewayIfPossible() {
+        if (!MoggoPushGateway.isConfigured()) return;
+        SharedPreferences prefs = ApplicationLoader.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        if (prefs.getBoolean(KEY_GATEWAY, false)) return;
+        prefs.edit().putBoolean(KEY_GATEWAY, true).apply();
+        int type = NaConfig.INSTANCE.getPushServiceType().Int();
+        if (type == 2) return;
+        if (!new GooglePushListenerServiceProvider().hasServices()) return;
+        NaConfig.INSTANCE.getPushServiceType().setConfigInt(1);
+        NaConfig.INSTANCE.getPushServiceTypeInAppDialog().setConfigBool(false);
+        MessagesController.getGlobalNotificationsSettings().edit().putBoolean("pushService", false).apply();
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            MessagesController.getNotificationsSettings(a).edit().putBoolean("pushService", false).apply();
+        }
+        ApplicationLoader.resetPushProvider();
+        PushListenerController.reconcilePushRegistration();
+        ApplicationLoader.startPushService(); // stops the keep-alive service now that Google push has services
+        FileLog.d("moggogram: push switched to the FCM gateway");
     }
 
     public static void enablePushConnection() {
