@@ -473,8 +473,8 @@ Use your own Gemini API key (aistudio.google.com → Get API key). Image models 
     <string name="MoggoUgarAgain">Again</string>
     <string name="MoggoUgarNetwork">Could not reach Gemini. Check the internet connection and try again.</string>
     <string name="MoggoUgarBadKey">Gemini rejected the API key. Check it in M-Settings → Neural network @ugar.</string>
-    <string name="MoggoUgarNeedBilling">This key has no quota for image models: Google gives images only to keys with billing enabled. Turn on billing for the key's project in Google AI Studio.</string>
-    <string name="MoggoUgarQuota">The key's Gemini quota is used up. Try again later.</string>
+    <string name="MoggoUgarNeedBilling">This key has no quota for image models: Google gives images only to keys with billing enabled. Turn on billing for the project of this key in Google AI Studio.</string>
+    <string name="MoggoUgarQuota">The Gemini quota of this key is used up. Try again later.</string>
     <string name="MoggoUgarNoModel">Model %1$s is not available for this key. Pick another one in the @ugar settings.</string>
     <string name="MoggoUgarNoImage">Gemini returned no picture. %1$s</string>
 </resources>
