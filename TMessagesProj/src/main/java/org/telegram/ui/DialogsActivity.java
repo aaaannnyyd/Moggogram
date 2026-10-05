@@ -11231,6 +11231,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     @NonNull
     public ArrayList<TLRPC.Dialog> getDialogsArray(int currentAccount, int dialogsType, int folderId, boolean frozen) {
+        return org.telegram.messenger.MoggoDecoy.filter(getDialogsArrayInternal(currentAccount, dialogsType, folderId, frozen));
+    }
+
+    private ArrayList<TLRPC.Dialog> getDialogsArrayInternal(int currentAccount, int dialogsType, int folderId, boolean frozen) {
         if (frozen && frozenDialogsList != null) {
             return frozenDialogsList;
         }

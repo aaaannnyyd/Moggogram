@@ -413,4 +413,9 @@
     <string name="MoggoPinLimitTitle">Лимит закреплённых чатов</string>
     <string name="MoggoPinLimitText">Telegram разрешает закрепить только %1$d чатов. Moggogram может закреплять сколько угодно локально: закрепы будут храниться только на этом телефоне и перестанут синхронизироваться с другими устройствами. Включить неограниченные закрепы?</string>
     <string name="MoggoPinLimitEnable">Включить и закрепить</string>
+    <string name="MoggoDecoySet">Установить пароль-приманку</string>
+    <string name="MoggoDecoyEdit">Изменить пароль-приманку</string>
+    <string name="MoggoDecoyRemove">Удалить пароль-приманку</string>
+    <string name="MoggoDecoyChats">Чаты, скрытые приманкой</string>
+    <string name="MoggoDecoyAbout">При вводе пароля-приманки аккаунт откроется как обычно, но выбранные чаты пропадут из списка, поиска и уведомлений. Они вернутся после разблокировки настоящим паролем.</string>
 </resources>

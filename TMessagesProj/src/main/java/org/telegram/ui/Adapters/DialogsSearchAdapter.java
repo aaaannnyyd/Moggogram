@@ -1055,6 +1055,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
                 }
             }
             MessagesController.getInstance(currentAccount).putUsers(encUsers, true);
+            org.telegram.messenger.MoggoDecoy.filterSearch(result, names);
             searchResult = result;
             searchResultNames = names;
          //   searchContacts = contacts;

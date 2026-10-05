@@ -415,4 +415,9 @@ On Xiaomi, Huawei, Honor, OPPO and realme also enable "Autostart" for Moggogram 
     <string name="MoggoPinLimitTitle">Pin limit</string>
     <string name="MoggoPinLimitText">Telegram allows only %1$d pinned chats. Moggogram can pin any number of chats locally: they are kept on this phone only and pins stop syncing with other devices. Enable unlimited pins?</string>
     <string name="MoggoPinLimitEnable">Enable and pin</string>
+    <string name="MoggoDecoySet">Set decoy passcode</string>
+    <string name="MoggoDecoyEdit">Change decoy passcode</string>
+    <string name="MoggoDecoyRemove">Remove decoy passcode</string>
+    <string name="MoggoDecoyChats">Chats hidden by the decoy</string>
+    <string name="MoggoDecoyAbout">Unlocking with the decoy passcode opens your account as usual, but the chosen chats disappear from the chat list, search and notifications. They come back after unlocking with your real passcode.</string>
 </resources>

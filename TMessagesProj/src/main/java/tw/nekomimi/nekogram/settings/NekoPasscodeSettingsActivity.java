@@ -55,6 +55,11 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
     private int removePanicCodeRow;
     private int panicCode2Row;
 
+    private int decoyCodeRow;
+    private int decoyChatsRow;
+    private int removeDecoyRow;
+    private int decoy2Row;
+
     private int clearPasscodesRow;
     private int clearPasscodes2Row;
 
@@ -162,6 +167,15 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                     }).create();
             showDialog(alertDialog);
             ((TextView) alertDialog.getButton(Dialog.BUTTON_POSITIVE)).setTextColor(Theme.getColor(Theme.key_dialogTextRed));
+        } else if (position == decoyCodeRow) {
+            presentFragment(new PasscodeActivity(PasscodeActivity.TYPE_SETUP_CODE, org.telegram.messenger.MoggoDecoy.PASSCODE_SLOT));
+        } else if (position == decoyChatsRow) {
+            showDecoyChatsPicker();
+        } else if (position == removeDecoyRow) {
+            PasscodeHelper.removePasscodeForAccount(org.telegram.messenger.MoggoDecoy.PASSCODE_SLOT);
+            org.telegram.messenger.MoggoDecoy.setActive(false);
+            updateRows();
+            listAdapter.notifyDataSetChanged();
         } else if (position == showInSettingsRow) {
             PasscodeHelper.setHideSettings(!PasscodeHelper.isSettingsHidden());
             if (view instanceof TextCheckCell) {
@@ -219,6 +233,16 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
         }
         panicCode2Row = rowCount++;
 
+        decoyCodeRow = rowCount++;
+        if (PasscodeHelper.hasPasscodeForAccount(org.telegram.messenger.MoggoDecoy.PASSCODE_SLOT)) {
+            decoyChatsRow = rowCount++;
+            removeDecoyRow = rowCount++;
+        } else {
+            decoyChatsRow = -1;
+            removeDecoyRow = -1;
+        }
+        decoy2Row = rowCount++;
+
         if (BuildConfig.DEBUG) {
             clearPasscodesRow = rowCount++;
             clearPasscodes2Row = rowCount++;
@@ -260,6 +284,15 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                     } else if (position == removePanicCodeRow) {
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteRedText3));
                         textCell.setText(getString(R.string.PasscodePanicCodeRemove), false);
+                    } else if (position == decoyCodeRow) {
+                        boolean has = PasscodeHelper.hasPasscodeForAccount(org.telegram.messenger.MoggoDecoy.PASSCODE_SLOT);
+                        textCell.setText(getString(has ? R.string.MoggoDecoyEdit : R.string.MoggoDecoySet), has);
+                    } else if (position == decoyChatsRow) {
+                        int count = org.telegram.messenger.MoggoDecoy.hiddenDialogs().size();
+                        textCell.setTextAndValue(getString(R.string.MoggoDecoyChats), String.valueOf(count), true);
+                    } else if (position == removeDecoyRow) {
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteRedText3));
+                        textCell.setText(getString(R.string.MoggoDecoyRemove), false);
                     }
                     break;
                 }
@@ -289,6 +322,8 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                         cell.setText(getString(R.string.PasscodeAbout));
                     } else if (position == panicCode2Row) {
                         cell.setText(getString(R.string.PasscodePanicCodeAbout));
+                    } else if (position == decoy2Row) {
+                        cell.setText(getString(R.string.MoggoDecoyAbout));
                     } else if (position == showInSettings2Row) {
                         var link = String.format(Locale.ENGLISH, "https://t.me/nasettings/%s", PasscodeHelper.getSettingsKey());
                         var stringBuilder = new SpannableStringBuilder(AndroidUtilities.replaceTags(getString(R.string.PasscodeShowInSettingsAbout)));
@@ -328,19 +363,65 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
         public int getItemViewType(int position) {
             if (position == clearPasscodes2Row) {
                 return 1;
-            } else if (position == clearPasscodesRow || position == setPanicCodeRow || position == removePanicCodeRow) {
+            } else if (position == clearPasscodesRow || position == setPanicCodeRow || position == removePanicCodeRow
+                    || position == decoyCodeRow || position == decoyChatsRow || position == removeDecoyRow) {
                 return 2;
             } else if (position == showInSettingsRow || position == showNotificationContentWhenLockedRow) {
                 return 3;
             } else if (position == accountsStartRow) {
                 return 4;
-            } else if (position == showInSettings2Row || position == accountsEndRow || position == panicCode2Row || position == showNotificationContentWhenLocked2Row) {
+            } else if (position == showInSettings2Row || position == accountsEndRow || position == panicCode2Row || position == decoy2Row || position == showNotificationContentWhenLocked2Row) {
                 return 7;
             } else if (position > accountsStartRow && position < accountsEndRow) {
                 return 11;
             }
             return 2;
         }
+    }
+
+    // Recent chats with checkboxes; the selection is hidden while the decoy code is in use
+    private void showDecoyChatsPicker() {
+        var activity = getParentActivity();
+        if (activity == null) return;
+        var selected = new java.util.HashSet<>(org.telegram.messenger.MoggoDecoy.hiddenDialogs());
+        var layout = new LinearLayout(activity);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        var dialogs = getMessagesController().getAllDialogs();
+        int shown = 0;
+        for (var dialog : dialogs) {
+            if (shown >= 300) break;
+            long did = dialog.id;
+            String name;
+            if (did > 0) {
+                var user = getMessagesController().getUser(did);
+                if (user == null) continue;
+                name = org.telegram.messenger.UserObject.getUserName(user);
+            } else {
+                var chat = getMessagesController().getChat(-did);
+                if (chat == null) continue;
+                name = chat.title;
+            }
+            var cell = new org.telegram.ui.Cells.CheckBoxCell(activity, org.telegram.ui.Cells.CheckBoxCell.TYPE_CHECK_BOX_DEFAULT, getResourceProvider());
+            cell.setBackground(Theme.getSelectorDrawable(false));
+            cell.setText(name, "", selected.contains(did), false);
+            cell.setOnClickListener(v -> {
+                if (!selected.remove(did)) selected.add(did);
+                cell.setChecked(selected.contains(did), true);
+            });
+            layout.addView(cell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+            shown++;
+        }
+        var scroll = new android.widget.ScrollView(activity);
+        scroll.addView(layout);
+        var builder = new AlertDialog.Builder(activity);
+        builder.setTitle(getString(R.string.MoggoDecoyChats));
+        builder.setView(scroll);
+        builder.setPositiveButton(getString(R.string.Save), (d, w) -> {
+            org.telegram.messenger.MoggoDecoy.setHiddenDialogs(selected);
+            listAdapter.notifyItemChanged(decoyChatsRow);
+        });
+        builder.setNegativeButton(getString(R.string.Cancel), null);
+        showDialog(builder.create());
     }
 
     private void showBulletin() {

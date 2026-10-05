@@ -1025,6 +1025,16 @@ public class NotificationsController extends BaseController implements Notificat
     }
 
     public void processNewMessages(ArrayList<MessageObject> messageObjects, boolean isLast, boolean isFcm, CountDownLatch countDownLatch) {
+        if (MoggoDecoy.isActive() && messageObjects != null) {
+            ArrayList<MessageObject> visible = new ArrayList<>(messageObjects);
+            MoggoDecoy.filterMessages(visible); // chats hidden by the decoy passcode stay silent
+            processNewMessagesInternal(visible, isLast, isFcm, countDownLatch);
+        } else {
+            processNewMessagesInternal(messageObjects, isLast, isFcm, countDownLatch);
+        }
+    }
+
+    private void processNewMessagesInternal(ArrayList<MessageObject> messageObjects, boolean isLast, boolean isFcm, CountDownLatch countDownLatch) {
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("NotificationsController: processNewMessages msgs.size()=" + (messageObjects == null ? "null" : messageObjects.size()) + " isLast=" + isLast + " isFcm=" + isFcm + ")");
         }

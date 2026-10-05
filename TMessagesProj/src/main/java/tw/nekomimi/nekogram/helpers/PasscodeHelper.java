@@ -20,6 +20,17 @@ public class PasscodeHelper {
     private static final SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("nekopasscode", Context.MODE_PRIVATE);
 
     public static boolean checkPasscode(Activity activity, String passcode) {
+        org.telegram.messenger.MoggoDecoy.setActive(false);
+        int decoy = org.telegram.messenger.MoggoDecoy.PASSCODE_SLOT;
+        if (hasPasscodeForAccount(decoy)) {
+            String passcodeHash = preferences.getString("passcodeHash" + decoy, "");
+            String passcodeSaltString = preferences.getString("passcodeSalt" + decoy, "");
+            if (checkPasscodeHash(passcode, passcodeHash, passcodeSaltString)
+                    && !org.telegram.messenger.SharedConfig.checkPasscode(passcode)) {
+                org.telegram.messenger.MoggoDecoy.setActive(true);
+                return true;
+            }
+        }
         if (hasPasscodeForAccount(Integer.MAX_VALUE)) {
             String passcodeHash = preferences.getString("passcodeHash" + Integer.MAX_VALUE, "");
             String passcodeSaltString = preferences.getString("passcodeSalt" + Integer.MAX_VALUE, "");
