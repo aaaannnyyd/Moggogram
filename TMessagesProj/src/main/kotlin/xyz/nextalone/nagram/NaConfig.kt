@@ -368,13 +368,13 @@ object NaConfig {
         addConfig(
             "PushServiceType",
             ConfigItem.configTypeInt,
-            1
+            0 // Moggogram: FCM cannot reach a custom api_id, keep our own connection
         )
     val pushServiceTypeInAppDialog =
         addConfig(
             "PushServiceTypeInAppDialog",
             ConfigItem.configTypeBool,
-            false
+            true
         )
     val pushServiceTypeUnifiedGateway =
         addConfig(

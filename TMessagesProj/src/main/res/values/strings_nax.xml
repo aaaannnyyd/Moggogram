@@ -390,4 +390,10 @@
     <string name="MoggoFloatingPlayer">Floating player over other apps</string>
     <string name="CameraInVideoMessagesLast">Last used</string>
     <string name="MoggoRoundStartCamera">Start with camera</string>
+    <string name="MoggoPushTitle">Notifications</string>
+    <string name="MoggoPushBatteryText">Moggogram keeps its own connection to Telegram to deliver notifications. Allow it to run in the background (turn off battery optimization), otherwise the system may cut the connection and notifications will be late or lost.
+
+On Xiaomi, Huawei, Honor, OPPO and realme also enable "Autostart" for Moggogram in the phone settings.</string>
+    <string name="MoggoPushAllow">Allow</string>
+    <string name="MoggoPushServiceText">Keeping the connection for notifications</string>
 </resources>

@@ -388,4 +388,10 @@
     <string name="MoggoFloatingPlayer">Плавающий плеер поверх приложений</string>
     <string name="CameraInVideoMessagesLast">Последняя использованная</string>
     <string name="MoggoRoundStartCamera">Камера при старте</string>
+    <string name="MoggoPushTitle">Уведомления</string>
+    <string name="MoggoPushBatteryText">Moggogram держит своё соединение с Telegram, чтобы доставлять уведомления. Разрешите ему работать в фоне (отключите оптимизацию батареи), иначе система может обрывать соединение и уведомления будут приходить с опозданием или теряться.
+
+На Xiaomi, Huawei, Honor, OPPO и realme также включите «Автозапуск» для Moggogram в настройках телефона.</string>
+    <string name="MoggoPushAllow">Разрешить</string>
+    <string name="MoggoPushServiceText">Соединение для уведомлений активно</string>
 </resources>

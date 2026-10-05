@@ -135,6 +135,11 @@ public class ApplicationLoader extends Application {
         return new GoogleMapsProvider();
     }*/
 
+    public static void resetPushProvider() {
+        pushProvider = null;
+        PushListenerController.resetProvider();
+    }
+
     public static PushListenerController.IPushListenerServiceProvider getPushProvider() {
         if (pushProvider == null) {
             pushProvider = PushListenerController.getProvider();
@@ -296,6 +301,8 @@ public class ApplicationLoader extends Application {
         PushListenerController.reconcilePushRegistration();
 
         // init fcm
+        MoggoPushFix.migrateIfNeeded();
+        MoggoPushFix.enablePushConnection();
         initPushServices();
         FileLog.d("app initied");
 
@@ -433,7 +440,9 @@ public class ApplicationLoader extends Application {
                     // Telegram-FOSS: unconditionally enable push service
                     AlarmManager am = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
                     Intent i = new Intent(applicationContext, NotificationsService.class);
-                    pendingIntent = PendingIntent.getBroadcast(applicationContext, 0, i, PendingIntent.FLAG_IMMUTABLE);
+                    pendingIntent = NaConfig.INSTANCE.getPushServiceTypeInAppDialog().Bool()
+                            ? PendingIntent.getForegroundService(applicationContext, 0, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT)
+                            : PendingIntent.getService(applicationContext, 0, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
                     am.cancel(pendingIntent);
                     am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 10 * 60 * 1000, pendingIntent);

@@ -6903,6 +6903,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         Browser.bindCustomTabsService(this);
         ApplicationLoader.mainInterfaceStopped = false;
         org.telegram.ui.Components.MoggoFloatingPlayer.onAppForeground();
+        if (UserConfig.getInstance(currentAccount).isClientActivated()) {
+            AndroidUtilities.runOnUIThread(() -> {
+                if (!isFinishing()) org.telegram.messenger.MoggoPushFix.maybeAskBatteryExemption(this);
+            }, 1500);
+        }
         GroupCallPip.updateVisibility(this);
         if (GroupCallActivity.groupCallInstance != null) {
             GroupCallActivity.groupCallInstance.onResume();

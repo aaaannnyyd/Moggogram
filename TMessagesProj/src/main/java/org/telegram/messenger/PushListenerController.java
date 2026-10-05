@@ -1695,6 +1695,10 @@ public class PushListenerController {
         }
     }
 
+    public static void resetProvider() {
+        instance = null;
+    }
+
     public static IPushListenerServiceProvider getProvider() {
         if (instance != null)
             return instance;
