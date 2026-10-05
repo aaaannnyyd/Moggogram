@@ -448,4 +448,14 @@
 Папка: %1$s</string>
     <string name="MoggoArchiveOn">Живой архив включён</string>
     <string name="MoggoArchiveOff">Живой архив выключен</string>
+    <string name="MoggoChatStatsReading">Читаю историю чата</string>
+    <string name="MoggoChatStatsUpdating">Добавляю новые сообщения</string>
+    <string name="MoggoChatStatsCached">Показан результат от %1$s, дочитываю новое…</string>
+    <string name="MoggoChatStatsNew">Прочитано новых: %1$d</string>
+    <string name="MoggoChatStatsProgress">%1$s из %2$s</string>
+    <string name="MoggoChatStatsEta">осталось ~%1$d с</string>
+    <string name="MoggoChatStatsMat">Мат-счётчик</string>
+    <string name="MoggoChatStatsMatTotal">Матерных слов: %1$d, в %2$d%% текстовых сообщений</string>
+    <string name="MoggoChatStatsPer100">%1$s на 100 сообщ.</string>
+    <string name="MoggoChatStatsMatTop">Любимые слова</string>
 </resources>

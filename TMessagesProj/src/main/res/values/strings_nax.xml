@@ -450,4 +450,14 @@ On Xiaomi, Huawei, Honor, OPPO and realme also enable "Autostart" for Moggogram 
 Folder: %1$s</string>
     <string name="MoggoArchiveOn">Live archive is on</string>
     <string name="MoggoArchiveOff">Live archive is off</string>
+    <string name="MoggoChatStatsReading">Reading the chat history</string>
+    <string name="MoggoChatStatsUpdating">Adding new messages</string>
+    <string name="MoggoChatStatsCached">Showing results from %1$s, reading what came since…</string>
+    <string name="MoggoChatStatsNew">New messages read: %1$d</string>
+    <string name="MoggoChatStatsProgress">%1$s of %2$s</string>
+    <string name="MoggoChatStatsEta">about %1$d s left</string>
+    <string name="MoggoChatStatsMat">Swear counter</string>
+    <string name="MoggoChatStatsMatTotal">Swear words: %1$d, in %2$d%% of text messages</string>
+    <string name="MoggoChatStatsPer100">%1$s per 100 msgs</string>
+    <string name="MoggoChatStatsMatTop">Favourite words</string>
 </resources>
