@@ -412,4 +412,7 @@ On Xiaomi, Huawei, Honor, OPPO and realme also enable "Autostart" for Moggogram 
     <string name="MoggoDownloadHow">How to save</string>
     <string name="MoggoDownloadZip">One ZIP archive (files named by date and sender)</string>
     <string name="MoggoDownloadFoundZip">Found %1$d files, %2$s. They will be packed into one ZIP archive in Downloads.</string>
+    <string name="MoggoPinLimitTitle">Pin limit</string>
+    <string name="MoggoPinLimitText">Telegram allows only %1$d pinned chats. Moggogram can pin any number of chats locally: they are kept on this phone only and pins stop syncing with other devices. Enable unlimited pins?</string>
+    <string name="MoggoPinLimitEnable">Enable and pin</string>
 </resources>

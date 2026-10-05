@@ -9458,6 +9458,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (newPinnedSecretCount + pinnedSecretCount > maxPinnedCount || newPinnedCount + pinnedCount - alreadyAdded > maxPinnedCount) {
                 if (folderId != 0 || filter != null) {
                     AlertsCreator.showSimpleAlert(DialogsActivity.this, LocaleController.formatString("PinFolderLimitReached", R.string.PinFolderLimitReached, LocaleController.formatPluralString("Chats", maxPinnedCount)));
+                } else if (!NekoConfig.unlimitedPinnedDialogs.Bool()) {
+                    // Moggogram: instead of the Premium upsell, offer Nagram's local unlimited pins
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+                    builder.setTitle(getString(R.string.MoggoPinLimitTitle));
+                    builder.setMessage(LocaleController.formatString(R.string.MoggoPinLimitText, maxPinnedCount));
+                    builder.setPositiveButton(getString(R.string.MoggoPinLimitEnable), (d, w) -> {
+                        NekoConfig.unlimitedPinnedDialogs.setConfigBool(true);
+                        performSelectedDialogsAction(selectedDialogs, action, alert, longPress, dialogsIdsToRevoke);
+                    });
+                    builder.setNegativeButton(getString(R.string.Cancel), null);
+                    showDialog(builder.create());
                 } else {
                     LimitReachedBottomSheet limitReachedBottomSheet = new LimitReachedBottomSheet(this, getParentActivity(), LimitReachedBottomSheet.TYPE_PIN_DIALOGS, currentAccount, null);
                     showDialog(limitReachedBottomSheet);

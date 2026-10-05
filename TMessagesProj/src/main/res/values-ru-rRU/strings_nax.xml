@@ -410,4 +410,7 @@
     <string name="MoggoDownloadHow">Как сохранить</string>
     <string name="MoggoDownloadZip">Одним ZIP-архивом (файлы подписаны датой и отправителем)</string>
     <string name="MoggoDownloadFoundZip">Найдено файлов: %1$d, %2$s. Они будут упакованы в один ZIP-архив в «Загрузках».</string>
+    <string name="MoggoPinLimitTitle">Лимит закреплённых чатов</string>
+    <string name="MoggoPinLimitText">Telegram разрешает закрепить только %1$d чатов. Moggogram может закреплять сколько угодно локально: закрепы будут храниться только на этом телефоне и перестанут синхронизироваться с другими устройствами. Включить неограниченные закрепы?</string>
+    <string name="MoggoPinLimitEnable">Включить и закрепить</string>
 </resources>
