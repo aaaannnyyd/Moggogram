@@ -996,6 +996,12 @@ object NaConfig {
             ConfigItem.configTypeString,
             ""
         )
+    val moggoUgarVariants =
+        addConfig(
+            "MoggoUgarVariants",
+            ConfigItem.configTypeInt,
+            1
+        )
     val moggoGeminiModel =
         addConfig(
             "MoggoGeminiModel",

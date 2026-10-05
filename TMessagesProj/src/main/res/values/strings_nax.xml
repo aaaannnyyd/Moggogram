@@ -486,4 +486,8 @@ Sign in to Google to draw with your Gemini subscription (unofficial: Gemini must
     <string name="MoggoUgarSessionExpired">Google session expired or Gemini is not reachable. Check the VPN, or sign in again in the @ugar settings.</string>
     <string name="MoggoUgarWebLimit">The image limit of your Gemini subscription is used up. Try again later.</string>
     <string name="MoggoUgarWebBlocked">Google temporarily blocked requests from this IP. Change the VPN server or wait.</string>
+    <string name="MoggoUgarVariants">Pictures per request: %1$d</string>
+    <string name="MoggoUgarDrawing">Drawing… %1$d s</string>
+    <string name="MoggoUgarPanelHint">Tap a picture to send, hold to view</string>
+    <string name="MoggoUgarFailed">Failed, tap for details</string>
 </resources>

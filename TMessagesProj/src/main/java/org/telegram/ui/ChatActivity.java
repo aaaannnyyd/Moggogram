@@ -682,6 +682,7 @@ public class ChatActivity extends BaseFragment implements
     private Runnable tapForForwardingOptionsHitRunnable;
     private ImageView replyCloseImageView;
     private MentionsContainerView mentionContainer;
+    private MoggoUgarPanel moggoUgarPanel;
     private AnimatorSet mentionListAnimation;
     public ChatAttachAlert chatAttachAlert;
     @Nullable
@@ -7801,6 +7802,13 @@ public class ChatActivity extends BaseFragment implements
         {
             final int indexToAdd = chatActivityFadeView != null ? contentView.indexOfChild(chatActivityFadeView) : -1;
             contentView.addView(mentionContainer, indexToAdd, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 110, Gravity.LEFT | Gravity.BOTTOM));
+        }
+        if (!isInPreviewMode()) {
+            moggoUgarPanel = new MoggoUgarPanel(context, this, getResourceProvider());
+            moggoUgarPanel.setBackground(glassBackgroundDrawableFactoryFrosted.create(moggoUgarPanel, blurredBackgroundColorProviderWhite).setRadius(dp(18)));
+            moggoUgarPanel.setOnVisibilityChanged(this::checkUi_botMenuPosition);
+            final int indexToAdd = chatActivityFadeView != null ? contentView.indexOfChild(chatActivityFadeView) : -1;
+            contentView.addView(moggoUgarPanel, indexToAdd, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 8, 0, 8, 0));
         }
         contentPreviewViewerDelegate = new ContentPreviewViewer.ContentPreviewViewerDelegate() {
             @Override
@@ -49700,6 +49708,9 @@ public class ChatActivity extends BaseFragment implements
         }
         if (mentionContainer != null) {
             mentionContainer.setTranslationY(mentionContainer.isReversed() ? dp(5) : -margin);
+        }
+        if (moggoUgarPanel != null) {
+            moggoUgarPanel.setTranslationY(-margin + dp(6));
         }
     }
 

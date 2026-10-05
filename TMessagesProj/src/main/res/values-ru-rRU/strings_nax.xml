@@ -484,4 +484,8 @@
     <string name="MoggoUgarSessionExpired">Сессия Google истекла или Gemini недоступен. Проверьте VPN или войдите заново в настройках @ugar.</string>
     <string name="MoggoUgarWebLimit">Лимит картинок по подписке Gemini исчерпан. Попробуйте позже.</string>
     <string name="MoggoUgarWebBlocked">Google временно заблокировал запросы с этого IP. Смените сервер VPN или подождите.</string>
+    <string name="MoggoUgarVariants">Картинок за раз: %1$d</string>
+    <string name="MoggoUgarDrawing">Рисую… %1$d с</string>
+    <string name="MoggoUgarPanelHint">Тап — отправить, удержание — посмотреть</string>
+    <string name="MoggoUgarFailed">Не вышло, тап — подробнее</string>
 </resources>

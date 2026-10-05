@@ -95,59 +95,144 @@ public final class MoggoUgar {
             fragment.showDialog(b.create());
             return;
         }
-        run(fragment, prompt, refPaths == null ? new ArrayList<>() : new ArrayList<>(refPaths), reply);
+        if (reply != null && reply == fragment.getReplyMessage()) {
+            fragment.hideFieldPanel(false);
+        }
+        Job job = new Job();
+        job.account = fragment.getCurrentAccount();
+        job.key = jobKey(fragment);
+        job.prompt = prompt;
+        job.refs = refPaths == null ? new ArrayList<>() : new ArrayList<>(refPaths);
+        job.reply = reply;
+        job.variants = variants();
+        Job old = JOBS.put(job.key, job);
+        if (old != null) old.cancelled = true;
+        runJob(job);
     }
 
     private static boolean isPhoto(MessageObject m) {
         return m != null && (m.isPhoto() || m.isSticker() && !m.isAnimatedSticker() && !m.isVideoSticker());
     }
 
-    private static void run(ChatActivity fragment, String prompt, ArrayList<String> refs, MessageObject reply) {
-        Activity activity = fragment.getParentActivity();
-        if (activity == null) return;
-        boolean[] cancelled = {false};
-        AlertDialog progress = new AlertDialog(activity, AlertDialog.ALERT_TYPE_SPINNER);
-        progress.setCanCancel(true);
-        progress.setOnCancelListener(d -> cancelled[0] = true);
-        progress.show();
-        int account = fragment.getCurrentAccount();
-        Utilities.globalQueue.postRunnable(() -> {
-            Result result;
-            try {
-                ArrayList<String> allRefs = new ArrayList<>(refs);
-                if (isPhoto(reply)) {
-                    File f = loadBlocking(account, reply);
-                    if (f != null) allRefs.add(0, f.getAbsolutePath());
-                }
-                result = generate(prompt, allRefs);
-            } catch (MoggoGeminiWeb.UserError e) {
-                result = Result.error(e.getMessage());
-            } catch (Exception e) {
-                FileLog.e(e);
-                result = Result.error(LocaleController.getString(R.string.MoggoUgarNetwork));
-            }
-            final Result r = result;
-            AndroidUtilities.runOnUIThread(() -> {
-                try {
-                    progress.dismiss();
-                } catch (Exception ignore) {
-                }
-                if (cancelled[0] || fragment.getParentActivity() == null) return;
-                if (r.file == null) {
-                    AlertDialog.Builder b = new AlertDialog.Builder(fragment.getParentActivity());
-                    b.setTitle(LocaleController.getString(R.string.MoggoUgarTitle));
-                    b.setMessage(r.message);
-                    b.setPositiveButton(LocaleController.getString(R.string.OK), null);
-                    fragment.showDialog(b.create());
-                } else {
-                    showPreview(fragment, r.file, prompt, refs, reply);
-                }
-            });
-        });
+    // ---------------------------------------------------------------- jobs
+    // A generation keeps going when the chat is closed; its pictures wait in the chat's panel.
+
+    public static final class Job {
+        public String key;
+        public int account;
+        public String prompt;
+        public ArrayList<String> refs;
+        public MessageObject reply;
+        public int variants;
+        public final ArrayList<File> images = new ArrayList<>();
+        public final ArrayList<String> errors = new ArrayList<>();
+        public int pending;
+        public long startedAt;
+        volatile boolean cancelled;
+        int generation;
+
+        public boolean isRunning() {
+            return pending > 0;
+        }
     }
 
-    private static void showPreview(ChatActivity fragment, File file, String prompt, ArrayList<String> refs, MessageObject reply) {
+    public interface Listener {
+        void onUgarJobChanged(String key);
+    }
+
+    private static final java.util.HashMap<String, Job> JOBS = new java.util.HashMap<>();
+    private static final ArrayList<Listener> LISTENERS = new ArrayList<>();
+
+    public static String jobKey(ChatActivity fragment) {
+        return fragment.getCurrentAccount() + "_" + fragment.getDialogId() + "_" + fragment.getThreadId();
+    }
+
+    public static Job getJob(String key) {
+        return JOBS.get(key);
+    }
+
+    public static void addListener(Listener l) {
+        if (!LISTENERS.contains(l)) LISTENERS.add(l);
+    }
+
+    public static void removeListener(Listener l) {
+        LISTENERS.remove(l);
+    }
+
+    private static void changed(String key) {
+        for (Listener l : new ArrayList<>(LISTENERS)) l.onUgarJobChanged(key);
+    }
+
+    /** Close the panel: drops the pictures and stops waiting for the ones still drawing. */
+    public static void dismiss(String key) {
+        Job job = JOBS.remove(key);
+        if (job != null) job.cancelled = true;
+        changed(key);
+    }
+
+    public static void again(String key) {
+        Job job = JOBS.get(key);
+        if (job != null) {
+            job.variants = variants();
+            runJob(job);
+        }
+    }
+
+    public static int variants() {
+        return Math.max(1, Math.min(4, NaConfig.INSTANCE.getMoggoUgarVariants().Int()));
+    }
+
+    private static void runJob(Job job) {
+        int generation = ++job.generation;
+        job.images.clear();
+        job.errors.clear();
+        job.pending = job.variants;
+        job.startedAt = android.os.SystemClock.elapsedRealtime();
+        changed(job.key);
+        new Thread(() -> {
+            ArrayList<String> refs = new ArrayList<>(job.refs);
+            if (isPhoto(job.reply)) {
+                try {
+                    File f = loadBlocking(job.account, job.reply);
+                    if (f != null) refs.add(0, f.getAbsolutePath());
+                } catch (InterruptedException ignore) {
+                }
+            }
+            for (int i = 0; i < job.variants; i++) {
+                if (job.cancelled || job.generation != generation) return;
+                Result result;
+                try {
+                    result = generate(job.prompt, refs);
+                } catch (MoggoGeminiWeb.UserError e) {
+                    result = Result.error(e.getMessage());
+                } catch (Exception e) {
+                    FileLog.e(e);
+                    result = Result.error(LocaleController.getString(R.string.MoggoUgarNetwork));
+                }
+                final Result r = result;
+                AndroidUtilities.runOnUIThread(() -> {
+                    if (job.cancelled || job.generation != generation) return;
+                    if (r.file != null) job.images.add(r.file);
+                    else job.errors.add(r.message);
+                    job.pending = Math.max(0, job.pending - 1);
+                    changed(job.key);
+                });
+            }
+        }, "moggo-ugar").start();
+    }
+
+    /** Sends one picture of the job and closes the panel, like inline bots do. */
+    public static void send(ChatActivity fragment, File file) {
+        String key = jobKey(fragment);
+        Job job = JOBS.get(key);
+        fragment.moggoSendGenerated(file.getAbsolutePath(), job == null ? null : job.reply);
+        dismiss(key);
+    }
+
+    public static void showPreview(ChatActivity fragment, File file) {
         Activity activity = fragment.getParentActivity();
+        if (activity == null) return;
+        Job job = JOBS.get(jobKey(fragment));
         Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -156,9 +241,9 @@ public final class MoggoUgar {
         image.setScaleType(ImageView.ScaleType.FIT_CENTER);
         image.setImageBitmap(bitmap);
         layout.addView(image, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 16, 8, 16, 0));
-        if (!TextUtils.isEmpty(prompt)) {
+        if (job != null && !TextUtils.isEmpty(job.prompt)) {
             TextView caption = new TextView(activity);
-            caption.setText(prompt);
+            caption.setText(job.prompt);
             caption.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             caption.setTextColor(Theme.getColor(Theme.key_dialogTextGray3));
             caption.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(8), AndroidUtilities.dp(20), 0);
@@ -167,9 +252,18 @@ public final class MoggoUgar {
         AlertDialog.Builder b = new AlertDialog.Builder(activity);
         b.setTitle(LocaleController.getString(R.string.MoggoUgarTitle));
         b.setView(layout);
-        b.setPositiveButton(LocaleController.getString(R.string.Send), (d, w) -> fragment.moggoSendGenerated(file.getAbsolutePath(), reply));
-        b.setNeutralButton(LocaleController.getString(R.string.MoggoUgarAgain), (d, w) -> run(fragment, prompt, refs, reply));
-        b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        b.setPositiveButton(LocaleController.getString(R.string.Send), (d, w) -> send(fragment, file));
+        b.setNegativeButton(LocaleController.getString(R.string.Close), null);
+        fragment.showDialog(b.create());
+    }
+
+    public static void showError(ChatActivity fragment, String message) {
+        Activity activity = fragment.getParentActivity();
+        if (activity == null) return;
+        AlertDialog.Builder b = new AlertDialog.Builder(activity);
+        b.setTitle(LocaleController.getString(R.string.MoggoUgarTitle));
+        b.setMessage(message);
+        b.setPositiveButton(LocaleController.getString(R.string.OK), null);
         fragment.showDialog(b.create());
     }
 
@@ -410,12 +504,25 @@ public final class MoggoUgar {
         }));
         layout.addView(modelView);
 
+        TextView variantsView = new TextView(activity);
+        variantsView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        variantsView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue));
+        variantsView.setPadding(0, AndroidUtilities.dp(8), 0, AndroidUtilities.dp(6));
+        int[] selectedVariants = {variants()};
+        variantsView.setText(LocaleController.formatString(R.string.MoggoUgarVariants, selectedVariants[0]));
+        variantsView.setOnClickListener(v -> {
+            selectedVariants[0] = selectedVariants[0] % 4 + 1;
+            variantsView.setText(LocaleController.formatString(R.string.MoggoUgarVariants, selectedVariants[0]));
+        });
+        layout.addView(variantsView);
+
         AlertDialog.Builder b = new AlertDialog.Builder(activity);
         b.setTitle(LocaleController.getString(R.string.MoggoUgarSettings));
         b.setView(layout);
         b.setPositiveButton(LocaleController.getString(R.string.Save), (d, w) -> {
             NaConfig.INSTANCE.getMoggoGeminiKey().setConfigString(keyField.getText().toString().trim());
             NaConfig.INSTANCE.getMoggoGeminiModel().setConfigString(selectedModel[0]);
+            NaConfig.INSTANCE.getMoggoUgarVariants().setConfigInt(selectedVariants[0]);
         });
         b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         dialog[0] = b.show();
