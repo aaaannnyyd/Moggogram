@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import tw.nekomimi.nekogram.SaveToDownloadReceiver;
 
@@ -134,8 +136,19 @@ public class MoggoMediaDownloader implements NotificationCenter.NotificationCent
     // ---- download ----
 
     public static void download(Context context, int account, ArrayList<MessageObject> messages) {
-        new MoggoMediaDownloader(context, account, messages).start();
+        download(context, account, messages, null);
     }
+
+    /** @param zipName non-null: pack everything into one ZIP in Downloads instead of separate files */
+    public static void download(Context context, int account, ArrayList<MessageObject> messages, String zipName) {
+        MoggoMediaDownloader downloader = new MoggoMediaDownloader(context, account, messages);
+        downloader.zipName = zipName;
+        downloader.start();
+    }
+
+    private String zipName;
+    private ZipOutputStream zip;
+    private File zipFile;
 
     private final Context context;
     private final int account;
@@ -166,11 +179,20 @@ public class MoggoMediaDownloader implements NotificationCenter.NotificationCent
     private void run() {
         int saved = 0;
         int failed = 0;
+        if (zipName != null) {
+            try {
+                zipFile = new File(AndroidUtilities.getCacheDir(), "moggo_" + System.currentTimeMillis() + ".zip");
+                zip = new ZipOutputStream(new java.io.BufferedOutputStream(new FileOutputStream(zipFile)));
+            } catch (Exception e) {
+                FileLog.e(e);
+                zip = null;
+            }
+        }
         for (int i = 0; i < messages.size() && !cancelled; i++) {
             MessageObject messageObject = messages.get(i);
             try {
                 File file = ensureLoaded(messageObject);
-                if (file != null && !cancelled && save(messageObject, file)) {
+                if (file != null && !cancelled && (zip != null ? addToZip(messageObject, file) : save(messageObject, file))) {
                     saved++;
                 } else if (!cancelled) {
                     failed++;
@@ -181,6 +203,20 @@ public class MoggoMediaDownloader implements NotificationCenter.NotificationCent
             }
             final int progress = (i + 1) * 100 / messages.size();
             AndroidUtilities.runOnUIThread(() -> SaveToDownloadReceiver.updateNotification(notificationId, progress));
+        }
+        if (zip != null) {
+            try {
+                zip.close();
+                if (cancelled || saved == 0 || !saveZip()) {
+                    if (!cancelled && saved > 0) failed += saved;
+                    if (!cancelled && saved > 0) saved = 0;
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+                failed += saved;
+                saved = 0;
+            }
+            zipFile.delete();
         }
         final int savedCount = saved;
         final int failedCount = failed;
@@ -247,6 +283,56 @@ public class MoggoMediaDownloader implements NotificationCenter.NotificationCent
         String name = (String) args[0];
         CountDownLatch latch = waitingLatch;
         if (latch != null && name != null && name.equals(waitingFileName)) latch.countDown();
+    }
+
+    private final java.util.HashSet<String> zipNames = new java.util.HashSet<>();
+
+    // "2026-10-05_14-03-22_Anna_12345.ogg" — sortable by time, readable sender
+    private boolean addToZip(MessageObject messageObject, File source) throws Exception {
+        String ext = FileLoader.getFileExtension(source);
+        if (TextUtils.isEmpty(ext)) ext = messageObject.isPhoto() ? "jpg" : "bin";
+        String sender = "";
+        long fromId = messageObject.getFromChatId();
+        MessagesController controller = MessagesController.getInstance(account);
+        if (fromId > 0) {
+            TLRPC.User user = controller.getUser(fromId);
+            if (user != null) sender = UserObject.getUserName(user);
+        } else if (fromId < 0) {
+            TLRPC.Chat chat = controller.getChat(-fromId);
+            if (chat != null) sender = chat.title;
+        }
+        sender = sender.replaceAll("[\\\\/:*?\"<>|\\s]+", "_");
+        if (sender.length() > 32) sender = sender.substring(0, 32);
+        String time = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", java.util.Locale.US)
+                .format(new java.util.Date(messageObject.messageOwner.date * 1000L));
+        String name = time + (sender.isEmpty() ? "" : "_" + sender) + "_" + messageObject.getId() + "." + ext;
+        if (!zipNames.add(name)) name = time + "_" + messageObject.getId() + "_" + zipNames.size() + "." + ext;
+        zip.putNextEntry(new ZipEntry(name));
+        try (FileInputStream in = new FileInputStream(source)) {
+            byte[] buffer = new byte[64 * 1024];
+            int n;
+            while ((n = in.read(buffer)) > 0) {
+                if (cancelled) return false;
+                zip.write(buffer, 0, n);
+            }
+        }
+        zip.closeEntry();
+        return true;
+    }
+
+    private boolean saveZip() throws Exception {
+        String name = zipName.replaceAll("[\\\\/:*?\"<>|]+", "_") + ".zip";
+        if (Build.VERSION.SDK_INT >= 29) {
+            return MediaController.saveFileInternal(2, zipFile, name, null) != null;
+        }
+        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Moggogram");
+        if (!dir.exists() && !dir.mkdirs()) return false;
+        File dest = new File(dir, name);
+        try (FileInputStream in = new FileInputStream(zipFile); FileOutputStream out = new FileOutputStream(dest)) {
+            AndroidUtilities.copyFile(in, out);
+        }
+        AndroidUtilities.addMediaToGallery(dest.getAbsolutePath());
+        return true;
     }
 
     // 0 = picture, 1 = video, 2 = downloads, 3 = music — same as MediaController.saveFile

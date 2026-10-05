@@ -6907,6 +6907,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         if (UserConfig.getInstance(currentAccount).isClientActivated()) {
             AndroidUtilities.runOnUIThread(() -> {
                 if (!isFinishing()) org.telegram.messenger.MoggoPushFix.maybeAskBatteryExemption(this);
+                if (!isFinishing()) tw.nekomimi.nekogram.helpers.remote.MoggoChangelog.showIfUpdated(this);
             }, 1500);
         }
         GroupCallPip.updateVisibility(this);

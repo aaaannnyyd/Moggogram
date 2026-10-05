@@ -122,6 +122,7 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     private final AbstractConfigCell moggoFloatingPlayerRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getMoggoFloatingPlayer()));
     private final AbstractConfigCell moggoShowMyBadgeRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getMoggoShowMyBadge()));
     private final AbstractConfigCell moggoShowBadgesRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getMoggoShowBadges()));
+    private final AbstractConfigCell moggoCrashReportsRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getMoggoCrashReports()));
     private final AbstractConfigCell showSeconds = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.showSeconds));
     private final AbstractConfigCell useEditedIconRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getUseEditedIcon()));
     private final AbstractConfigCell customEditedMessageRow = cellGroup.appendCell(new ConfigCellTextInput(null, NaConfig.INSTANCE.getCustomEditedMessage(), "", null));

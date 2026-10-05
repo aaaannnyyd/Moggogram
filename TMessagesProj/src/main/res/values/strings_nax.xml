@@ -399,4 +399,17 @@ On Xiaomi, Huawei, Honor, OPPO and realme also enable "Autostart" for Moggogram 
     <string name="MoggoShowMyBadge">Show my Moggogram badge to others</string>
     <string name="MoggoShowBadges">Show Moggogram badges</string>
     <string name="MoggoBadgeDescription">Uses Moggogram</string>
+    <string name="MoggoTestTitle">Check notifications</string>
+    <string name="MoggoTestSent">Test sent via Google. A notification should arrive within a few seconds.</string>
+    <string name="MoggoTestReceived">Notifications work: delivered via Google, no background connection needed.</string>
+    <string name="MoggoTestLocal">Test notification: the phone shows Moggogram notifications.</string>
+    <string name="MoggoTestGatewayFailed">The push gateway did not accept the test. Check the internet connection and try again.</string>
+    <string name="MoggoTestModeKeepAlive">Mode: own background connection (Google push is unavailable on this phone). Notifications come while the connection notification is shown. If they are late, allow Moggogram to run in the background.</string>
+    <string name="MoggoTestModeUnified">Mode: UnifiedPush. Check that the distributor app (ntfy) is installed and running.</string>
+    <string name="MoggoTestModeNoToken">Google push has not registered yet. Open Moggogram again in a minute and repeat the check.</string>
+    <string name="MoggoCrashReports">Send crash reports to the developer</string>
+    <string name="MoggoChangelogTitle">What's new in %1$s</string>
+    <string name="MoggoDownloadHow">How to save</string>
+    <string name="MoggoDownloadZip">One ZIP archive (files named by date and sender)</string>
+    <string name="MoggoDownloadFoundZip">Found %1$d files, %2$s. They will be packed into one ZIP archive in Downloads.</string>
 </resources>

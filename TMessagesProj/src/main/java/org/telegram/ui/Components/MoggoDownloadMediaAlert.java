@@ -51,6 +51,7 @@ public class MoggoDownloadMediaAlert {
 
     private static int selectedPeriod = 1;
     private static int selectedTypes = MoggoMediaDownloader.TYPE_PHOTO | MoggoMediaDownloader.TYPE_VIDEO;
+    private static boolean asZip;
 
     public static void show(BaseFragment fragment, long dialogId) {
         Activity activity = fragment.getParentActivity();
@@ -94,6 +95,18 @@ public class MoggoDownloadMediaAlert {
             layout.addView(cell);
         }
 
+        HeaderCell zipHeader = new HeaderCell(activity, resourcesProvider);
+        zipHeader.setText(getString(R.string.MoggoDownloadHow));
+        layout.addView(zipHeader);
+        CheckBoxCell zipCell = new CheckBoxCell(activity, CheckBoxCell.TYPE_CHECK_BOX_DEFAULT, resourcesProvider);
+        zipCell.setBackground(Theme.getSelectorDrawable(false));
+        zipCell.setText(getString(R.string.MoggoDownloadZip), "", asZip, false);
+        zipCell.setOnClickListener(v -> {
+            asZip = !asZip;
+            zipCell.setChecked(asZip, true);
+        });
+        layout.addView(zipCell);
+
         ScrollView scrollView = new ScrollView(activity);
         scrollView.addView(layout);
 
@@ -127,6 +140,17 @@ public class MoggoDownloadMediaAlert {
         });
     }
 
+    private static String zipName(BaseFragment fragment, int account) {
+        String title = "chat";
+        if (fragment instanceof org.telegram.ui.ChatActivity) {
+            org.telegram.ui.ChatActivity chat = (org.telegram.ui.ChatActivity) fragment;
+            if (chat.getCurrentUser() != null) title = org.telegram.messenger.UserObject.getUserName(chat.getCurrentUser());
+            else if (chat.getCurrentChat() != null) title = chat.getCurrentChat().title;
+        }
+        String date = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date());
+        return "Moggogram_" + title + "_" + date;
+    }
+
     private static void confirm(BaseFragment fragment, int account, ArrayList<MessageObject> messages, long totalBytes, boolean truncated) {
         Activity activity = fragment.getParentActivity();
         if (activity == null) return;
@@ -136,14 +160,15 @@ public class MoggoDownloadMediaAlert {
             builder.setMessage(getString(R.string.MoggoDownloadNothing));
             builder.setPositiveButton(getString(R.string.OK), null);
         } else {
-            String text = LocaleController.formatString(R.string.MoggoDownloadFound,
+            String text = LocaleController.formatString(asZip ? R.string.MoggoDownloadFoundZip : R.string.MoggoDownloadFound,
                     messages.size(), AndroidUtilities.formatFileSize(totalBytes));
             if (truncated) {
                 text += "\n\n" + LocaleController.formatString(R.string.MoggoDownloadLimit, MoggoMediaDownloader.MAX_FILES);
             }
             builder.setMessage(text);
+            String zipName = asZip ? zipName(fragment, account) : null;
             builder.setPositiveButton(getString(R.string.MoggoDownloadStart),
-                    (dialog, which) -> MoggoMediaDownloader.download(activity, account, messages));
+                    (dialog, which) -> MoggoMediaDownloader.download(activity, account, messages, zipName));
             builder.setNegativeButton(getString(R.string.Cancel), null);
         }
         fragment.showDialog(builder.create());

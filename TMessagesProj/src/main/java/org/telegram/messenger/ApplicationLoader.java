@@ -305,6 +305,7 @@ public class ApplicationLoader extends Application {
         MoggoPushFix.switchToGatewayIfPossible();
         MoggoPushFix.enablePushConnection();
         initPushServices();
+        MoggoDiagnostics.uploadPendingCrashes();
         FileLog.d("app initied");
 
         MediaController.getInstance();
@@ -330,6 +331,7 @@ public class ApplicationLoader extends Application {
 
         super.onCreate();
         installCrashReportFilter();
+        MoggoDiagnostics.installCrashHandler();
 
         // AndroidUtilities must be initialized before FileLog
         final String helloWorld = AndroidUtilities.getHelloWorld();

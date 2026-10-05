@@ -34,6 +34,10 @@ export default {
         return await handleBlobFetch(env, parts[1]);
       }
       if (parts[0] === "tg" && request.method === "POST") return await handleBotUpdate(request, env);
+      if (parts[0] === "test" && parts.length === 2 && request.method === "POST") {
+        return await forward(env, decodeURIComponent(parts[1]), { t: "test", ts: String(Date.now()) });
+      }
+      if (parts[0] === "crash" && parts.length === 1 && request.method === "POST") return await storeCrash(request, env);
       if (parts[0] === "badge") {
         if (parts[1] === "claim" && parts.length === 3 && request.method === "GET") return await badgeClaim(env, parts[2]);
         if (parts[1] === "check" && request.method === "POST") return await badgeCheck(request, env);
@@ -78,6 +82,25 @@ async function handleBlobFetch(env, id) {
   if (value === null) return new Response("not found\n", { status: 404 });
   await env.BLOBS.delete(id);
   return new Response(value, { headers: { "Content-Type": "text/plain" } });
+}
+
+// ---- crash reports ----
+// Technical data only (stack trace, versions, device model). Kept 30 days; read with
+// `wrangler kv key list --binding BLOBS --prefix crash:` and `wrangler kv key get`.
+const CRASH_TTL_SECONDS = 30 * 24 * 3600;
+const MAX_CRASH_BYTES = 64 * 1024;
+
+async function storeCrash(request, env) {
+  const text = await request.text();
+  if (text.length === 0 || text.length > MAX_CRASH_BYTES) return new Response("bad size\n", { status: 413 });
+  try {
+    JSON.parse(text);
+  } catch (e) {
+    return new Response("bad json\n", { status: 400 });
+  }
+  const key = "crash:" + new Date().toISOString() + ":" + randomHex(4);
+  await env.BLOBS.put(key, text, { expirationTtl: CRASH_TTL_SECONDS });
+  return new Response(null, { status: 201 });
 }
 
 // ---- Moggogram badges ----

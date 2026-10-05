@@ -86,6 +86,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
 
     private int aboutRow;
     private int roundVideoRow;
+    private int testNotificationRow;
 
     @Override
     protected void updateRows() {
@@ -95,6 +96,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
         translatorRow = addRow();
         chatRow = addRow();
         roundVideoRow = addRow();
+        testNotificationRow = addRow();
         if (!PasscodeHelper.isSettingsHidden()) {
             passcodeRow = addRow();
         } else {
@@ -342,6 +344,8 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
             presentFragment(new NekoPasscodeSettingsActivity());
         } else if (position == roundVideoRow) {
             presentFragment(new RoundVideoSettingsActivity());
+        } else if (position == testNotificationRow) {
+            org.telegram.messenger.MoggoDiagnostics.sendTestNotification(getParentActivity());
         } else if (position == experimentRow) {
             presentFragment(new NekoExperimentalSettingsActivity());
         } else if (position == translatorRow) {
@@ -407,6 +411,8 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
                         textCell.setTextAndIcon(getString(R.string.PasscodeNeko), R.drawable.msg_permissions, true);
                     } else if (position == roundVideoRow) {
                         textCell.setTextAndIcon(getString(R.string.RoundVideoSettings), R.drawable.msg_camera_solar, true);
+                    } else if (position == testNotificationRow) {
+                        textCell.setTextAndIcon(getString(R.string.MoggoTestTitle), R.drawable.msg_notifications, true);
                     } else if (position == experimentRow) {
                         textCell.setTextAndIcon(getString(R.string.Experimental), R.drawable.msg_fave, true);
                     } else if (position == importSettingsRow) {
@@ -430,7 +436,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
         public int getItemViewType(int position) {
             if (position == categoriesEndRow || position == nSettingsEndRow) {
                 return TYPE_SHADOW;
-            } else if (position == chatRow || position == roundVideoRow || position == generalRow || position == passcodeRow || position == experimentRow || position == translatorRow ||
+            } else if (position == chatRow || position == roundVideoRow || position == testNotificationRow || position == generalRow || position == passcodeRow || position == experimentRow || position == translatorRow ||
                     position == importSettingsRow || position == exportSettingsRow || position == resetSettingsRow || position == appRestartRow ||
                     position == aboutRow) {
                 return TYPE_TEXT;

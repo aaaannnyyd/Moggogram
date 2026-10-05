@@ -397,4 +397,17 @@
     <string name="MoggoShowMyBadge">Показывать мой значок Moggogram</string>
     <string name="MoggoShowBadges">Показывать значки Moggogram у других</string>
     <string name="MoggoBadgeDescription">Пользуется Moggogram</string>
+    <string name="MoggoTestTitle">Проверить уведомления</string>
+    <string name="MoggoTestSent">Тест отправлен через Google. Уведомление должно прийти через пару секунд.</string>
+    <string name="MoggoTestReceived">Уведомления работают: доставка через Google, фоновое соединение не нужно.</string>
+    <string name="MoggoTestLocal">Тестовое уведомление: телефон показывает уведомления Moggogram.</string>
+    <string name="MoggoTestGatewayFailed">Шлюз уведомлений не принял тест. Проверьте интернет и повторите.</string>
+    <string name="MoggoTestModeKeepAlive">Режим: своё фоновое соединение (Google-пуши на этом телефоне недоступны). Уведомления приходят, пока в шторке висит уведомление о соединении. Если опаздывают — разрешите Moggogram работать в фоне.</string>
+    <string name="MoggoTestModeUnified">Режим: UnifiedPush. Проверьте, что приложение-распространитель (ntfy) установлено и работает.</string>
+    <string name="MoggoTestModeNoToken">Google-пуши ещё не зарегистрировались. Откройте Moggogram снова через минуту и повторите проверку.</string>
+    <string name="MoggoCrashReports">Отправлять отчёты о сбоях разработчику</string>
+    <string name="MoggoChangelogTitle">Что нового в %1$s</string>
+    <string name="MoggoDownloadHow">Как сохранить</string>
+    <string name="MoggoDownloadZip">Одним ZIP-архивом (файлы подписаны датой и отправителем)</string>
+    <string name="MoggoDownloadFoundZip">Найдено файлов: %1$d, %2$s. Они будут упакованы в один ZIP-архив в «Загрузках».</string>
 </resources>

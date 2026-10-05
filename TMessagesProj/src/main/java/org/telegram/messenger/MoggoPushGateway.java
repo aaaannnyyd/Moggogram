@@ -44,9 +44,16 @@ public final class MoggoPushGateway {
         return isConfigured() && (type == 1 || type == 3);
     }
 
+    public static String savedFcmToken() {
+        return ApplicationLoader.applicationContext.getSharedPreferences("moggo_push", android.content.Context.MODE_PRIVATE)
+                .getString("fcm_token", null);
+    }
+
     public static void registerToken(String fcmToken) {
         String base = base();
         if (base == null || TextUtils.isEmpty(fcmToken)) return;
+        ApplicationLoader.applicationContext.getSharedPreferences("moggo_push", android.content.Context.MODE_PRIVATE)
+                .edit().putString("fcm_token", fcmToken).apply();
         Utilities.globalQueue.postRunnable(() -> {
             try {
                 byte[][] keys = UnifiedPushService.getOrCreateWebPushKeys();
@@ -73,7 +80,9 @@ public final class MoggoPushGateway {
         String type = data == null ? null : data.get("t");
         if (type == null) return false;
         try {
-            if ("sp".equals(type)) {
+            if ("test".equals(type)) {
+                MoggoDiagnostics.onTestPushReceived();
+            } else if ("sp".equals(type)) {
                 wakeUp();
             } else if ("wp".equals(type)) {
                 processWebPush(Base64.decode(data.get("d"), Base64.DEFAULT), time);
