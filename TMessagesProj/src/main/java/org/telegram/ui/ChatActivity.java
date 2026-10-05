@@ -460,6 +460,42 @@ public class ChatActivity extends BaseFragment implements
     private final static int moggo_chat_stats = 2091;
     private final static int moggo_chat_archive = 2092;
 
+    // ---- Moggogram @ugar (Gemini image generation) ----
+
+    public void moggoUgar(String prompt, ArrayList<String> refPaths) {
+        org.telegram.messenger.MoggoUgar.start(this, prompt, refPaths, replyingMessageObject);
+    }
+
+    private boolean moggoUgarFromAttach(HashMap<Object, Object> selectedPhotos, ArrayList<Object> order) {
+        String prompt = null;
+        ArrayList<String> refs = new ArrayList<>();
+        for (Object key : order) {
+            Object o = selectedPhotos.get(key);
+            if (!(o instanceof MediaController.PhotoEntry)) continue;
+            MediaController.PhotoEntry entry = (MediaController.PhotoEntry) o;
+            if (prompt == null && entry.caption != null) prompt = org.telegram.messenger.MoggoUgar.parse(entry.caption);
+            if (!entry.isVideo) refs.add(entry.imagePath != null ? entry.imagePath : entry.path);
+        }
+        if (prompt == null) return false;
+        for (Object key : order) {
+            Object o = selectedPhotos.get(key);
+            if (o instanceof MediaController.PhotoEntry) ((MediaController.PhotoEntry) o).reset();
+        }
+        moggoUgar(prompt, refs);
+        return true;
+    }
+
+    public void moggoSendGenerated(String path, MessageObject replyTo) {
+        ArrayList<SendMessagesHelper.SendingMediaInfo> photos = new ArrayList<>();
+        SendMessagesHelper.SendingMediaInfo info = new SendMessagesHelper.SendingMediaInfo();
+        info.path = path;
+        photos.add(info);
+        SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyTo, getThreadMessage(), null, null, false, false, null, true, 0, 0, chatMode, false, null, getMessageChatSendParams(), 0, false, 0, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
+        if (replyTo != null && replyTo == replyingMessageObject) {
+            hideFieldPanel(false);
+        }
+    }
+
     // shared with actionbar
     private final static int nkbtn_translate = 2008;
     private final static int nkbtn_hide = 2009;
@@ -13500,6 +13536,10 @@ public class ChatActivity extends BaseFragment implements
                         }
                         final HashMap<Object, Object> selectedPhotos = chatAttachAlert.getPhotoLayout().getSelectedPhotos();
                         final ArrayList<Object> selectedPhotosOrder = chatAttachAlert.getPhotoLayout().getSelectedPhotosOrder();
+                        if (!selectedPhotos.isEmpty() && moggoUgarFromAttach(selectedPhotos, selectedPhotosOrder)) {
+                            chatAttachAlert.dismiss(true);
+                            return;
+                        }
                         if (!selectedPhotos.isEmpty()) {
                             beforeMessageSend(notify, scheduleDate, true, payStars);
                             final int albumsCount = (int) Math.ceil(selectedPhotos.size() / 10f);

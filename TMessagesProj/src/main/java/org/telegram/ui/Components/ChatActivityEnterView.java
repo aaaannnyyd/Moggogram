@@ -8352,6 +8352,12 @@ public class ChatActivityEnterView extends FrameLayout implements
             if (checkPremiumAnimatedEmoji(currentAccount, dialog_id, parentFragment, null, message)) {
                 return;
             }
+            String ugarPrompt = org.telegram.messenger.MoggoUgar.parse(message);
+            if (ugarPrompt != null && parentFragment != null) {
+                if (messageEditText != null) messageEditText.setText("");
+                parentFragment.moggoUgar(ugarPrompt, null);
+                return;
+            }
             if (!TextUtils.isEmpty(message)) {
                 if (delegate != null) {
                     delegate.beforeMessageSend(message, notify, scheduleDate, payStars);

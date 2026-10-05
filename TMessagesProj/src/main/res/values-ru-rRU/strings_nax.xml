@@ -458,4 +458,21 @@
     <string name="MoggoChatStatsMatTotal">Матерных слов: %1$d, в %2$d%% текстовых сообщений</string>
     <string name="MoggoChatStatsPer100">%1$s на 100 сообщ.</string>
     <string name="MoggoChatStatsMatTop">Любимые слова</string>
+    <string name="MoggoUgarTitle">@ugar</string>
+    <string name="MoggoUgarSettings">Нейросеть @ugar</string>
+    <string name="MoggoUgarSettingsAbout">Рисуйте картинки Gemini прямо в чате: напишите «@ugar ваш запрос» и отправьте. Чтобы дать референсы — прикрепите фото с подписью «@ugar …» или ответьте этой командой на фото.
+
+Нужен свой ключ Gemini API (aistudio.google.com → Get API key). Для моделей картинок на ключе должна быть включена оплата.</string>
+    <string name="MoggoUgarKeyHint">Ключ Gemini API</string>
+    <string name="MoggoUgarModel">Модель: %1$s</string>
+    <string name="MoggoUgarPickModel">Модель Gemini для картинок</string>
+    <string name="MoggoUgarNoKey">Сначала укажите свой ключ Gemini API.</string>
+    <string name="MoggoUgarHelp">Напишите после @ugar, что нарисовать, например «@ugar кот в шляпе волшебника». Чтобы дать референс — прикрепите фото с подписью @ugar или ответьте командой на фото.</string>
+    <string name="MoggoUgarAgain">Ещё раз</string>
+    <string name="MoggoUgarNetwork">Не удалось связаться с Gemini. Проверьте интернет и повторите.</string>
+    <string name="MoggoUgarBadKey">Gemini не принял ключ. Проверьте его в «Настройки M → Нейросеть @ugar».</string>
+    <string name="MoggoUgarNeedBilling">На этом ключе нет квоты на модели картинок: Google даёт их только ключам с включённой оплатой. Включите Billing для проекта ключа в Google AI Studio.</string>
+    <string name="MoggoUgarQuota">Квота Gemini на этом ключе закончилась. Попробуйте позже.</string>
+    <string name="MoggoUgarNoModel">Модель %1$s недоступна для этого ключа. Выберите другую в настройках @ugar.</string>
+    <string name="MoggoUgarNoImage">Gemini не прислал картинку. %1$s</string>
 </resources>

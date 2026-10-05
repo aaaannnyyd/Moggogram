@@ -984,6 +984,18 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
+    val moggoGeminiKey =
+        addConfig(
+            "MoggoGeminiKey",
+            ConfigItem.configTypeString,
+            ""
+        )
+    val moggoGeminiModel =
+        addConfig(
+            "MoggoGeminiModel",
+            ConfigItem.configTypeString,
+            "gemini-3.1-flash-image"
+        )
     val moggoCrashReports =
         addConfig(
             "MoggoCrashReports",

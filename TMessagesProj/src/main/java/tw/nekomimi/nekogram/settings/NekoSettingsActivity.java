@@ -87,6 +87,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
     private int aboutRow;
     private int roundVideoRow;
     private int testNotificationRow;
+    private int ugarRow;
 
     @Override
     protected void updateRows() {
@@ -97,6 +98,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
         chatRow = addRow();
         roundVideoRow = addRow();
         testNotificationRow = addRow();
+        ugarRow = addRow();
         if (!PasscodeHelper.isSettingsHidden()) {
             passcodeRow = addRow();
         } else {
@@ -344,6 +346,8 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
             presentFragment(new NekoPasscodeSettingsActivity());
         } else if (position == roundVideoRow) {
             presentFragment(new RoundVideoSettingsActivity());
+        } else if (position == ugarRow) {
+            org.telegram.messenger.MoggoUgar.showSettings(getParentActivity());
         } else if (position == testNotificationRow) {
             org.telegram.messenger.MoggoDiagnostics.sendTestNotification(getParentActivity());
         } else if (position == experimentRow) {
@@ -411,6 +415,8 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
                         textCell.setTextAndIcon(getString(R.string.PasscodeNeko), R.drawable.msg_permissions, true);
                     } else if (position == roundVideoRow) {
                         textCell.setTextAndIcon(getString(R.string.RoundVideoSettings), R.drawable.msg_camera_solar, true);
+                    } else if (position == ugarRow) {
+                        textCell.setTextAndIcon(getString(R.string.MoggoUgarSettings), R.drawable.msg_photo_settings_solar, true);
                     } else if (position == testNotificationRow) {
                         textCell.setTextAndIcon(getString(R.string.MoggoTestTitle), R.drawable.msg_notifications, true);
                     } else if (position == experimentRow) {
@@ -436,7 +442,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
         public int getItemViewType(int position) {
             if (position == categoriesEndRow || position == nSettingsEndRow) {
                 return TYPE_SHADOW;
-            } else if (position == chatRow || position == roundVideoRow || position == testNotificationRow || position == generalRow || position == passcodeRow || position == experimentRow || position == translatorRow ||
+            } else if (position == chatRow || position == roundVideoRow || position == testNotificationRow || position == ugarRow || position == generalRow || position == passcodeRow || position == experimentRow || position == translatorRow ||
                     position == importSettingsRow || position == exportSettingsRow || position == resetSettingsRow || position == appRestartRow ||
                     position == aboutRow) {
                 return TYPE_TEXT;

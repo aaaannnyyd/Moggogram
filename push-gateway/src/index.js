@@ -38,6 +38,8 @@ export default {
         return await forward(env, decodeURIComponent(parts[1]), { t: "test", ts: String(Date.now()) });
       }
       if (parts[0] === "crash" && parts.length === 1 && request.method === "POST") return await storeCrash(request, env);
+      if (parts[0] === "gemini" && parts.length === 2 && request.method === "POST") return await geminiProxy(request, parts[1]);
+      if (parts[0] === "gemini-models" && parts.length === 1 && request.method === "GET") return await geminiModels(request);
       if (parts[0] === "badge") {
         if (parts[1] === "claim" && parts.length === 3 && request.method === "GET") return await badgeClaim(env, parts[2]);
         if (parts[1] === "check" && request.method === "POST") return await badgeCheck(request, env);
@@ -82,6 +84,38 @@ async function handleBlobFetch(env, id) {
   if (value === null) return new Response("not found\n", { status: 404 });
   await env.BLOBS.delete(id);
   return new Response(value, { headers: { "Content-Type": "text/plain" } });
+}
+
+// ---- Gemini proxy ----
+// Google blocks the Gemini API for Russian IPs; the app calls it through here with the user's own
+// key (X-Gemini-Key header). The key and the images are passed through, never stored.
+async function geminiProxy(request, model) {
+  if (!/^[a-z0-9.\-]{3,80}$/.test(model) || !model.startsWith("gemini")) {
+    return new Response("bad model\n", { status: 400 });
+  }
+  const key = request.headers.get("X-Gemini-Key");
+  if (!key) return new Response("no key\n", { status: 401 });
+  const response = await fetch(
+    "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: request.body,
+    }
+  );
+  return new Response(response.body, {
+    status: response.status,
+    headers: { "Content-Type": response.headers.get("Content-Type") || "application/json" },
+  });
+}
+
+async function geminiModels(request) {
+  const key = request.headers.get("X-Gemini-Key");
+  if (!key) return new Response("no key\n", { status: 401 });
+  const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200", {
+    headers: { "x-goog-api-key": key },
+  });
+  return new Response(response.body, { status: response.status, headers: { "Content-Type": "application/json" } });
 }
 
 // ---- crash reports ----
