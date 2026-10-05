@@ -33,6 +33,12 @@ export default {
       if (parts.length === 2 && parts[0] === "k" && request.method === "GET") {
         return await handleBlobFetch(env, parts[1]);
       }
+      if (parts[0] === "tg" && request.method === "POST") return await handleBotUpdate(request, env);
+      if (parts[0] === "badge") {
+        if (parts[1] === "claim" && parts.length === 3 && request.method === "GET") return await badgeClaim(env, parts[2]);
+        if (parts[1] === "check" && request.method === "POST") return await badgeCheck(request, env);
+        if (parts[1] === "remove" && request.method === "POST") return await badgeRemove(request, env);
+      }
       if (parts.length === 0) return new Response("moggogram push gateway\n");
       return new Response("not found\n", { status: 404 });
     } catch (e) {
@@ -72,6 +78,85 @@ async function handleBlobFetch(env, id) {
   if (value === null) return new Response("not found\n", { status: 404 });
   await env.BLOBS.delete(id);
   return new Response(value, { headers: { "Content-Type": "text/plain" } });
+}
+
+// ---- Moggogram badges ----
+// A client proves it owns a Telegram account by sending "/start moggogram" to the badge bot from
+// that account (Telegram vouches for message.from.id). The gateway then lists the id and keeps a
+// one-time claim with a secret that the client fetches within 5 minutes; the secret is needed to
+// remove the badge later. Storage (KV): "badge:users" = JSON array of ids, "badge:secret:<id>" = sha256.
+
+const CLAIM_TTL_SECONDS = 300;
+const MAX_CHECK_IDS = 200;
+
+async function handleBotUpdate(request, env) {
+  if (request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== env.BOT_WEBHOOK_SECRET) {
+    return new Response("forbidden\n", { status: 403 });
+  }
+  const update = await request.json();
+  const message = update.message;
+  if (!message || !message.from || message.from.is_bot || typeof message.text !== "string") {
+    return new Response("ok");
+  }
+  if (!/^\/start(@\w+)? moggogram\b/.test(message.text)) return new Response("ok");
+  const id = message.from.id;
+  const secret = randomHex(24);
+  await env.BLOBS.put("badge:secret:" + id, await sha256Hex(secret));
+  const users = await loadUsers(env);
+  if (!users.includes(id)) {
+    users.push(id);
+    await env.BLOBS.put("badge:users", JSON.stringify(users));
+  }
+  await env.BLOBS.put("claim:" + id, secret, { expirationTtl: CLAIM_TTL_SECONDS });
+  return new Response("ok");
+}
+
+async function badgeClaim(env, idText) {
+  if (!/^\d{1,20}$/.test(idText)) return new Response("bad id\n", { status: 400 });
+  const key = "claim:" + idText;
+  const secret = await env.BLOBS.get(key);
+  if (secret === null) return new Response("not found\n", { status: 404 });
+  await env.BLOBS.delete(key);
+  return Response.json({ secret });
+}
+
+async function badgeCheck(request, env) {
+  const body = await request.json();
+  const ids = Array.isArray(body.ids)
+    ? body.ids.filter((v) => Number.isSafeInteger(v) && v > 0).slice(0, MAX_CHECK_IDS)
+    : [];
+  if (ids.length === 0) return Response.json({ ids: [] });
+  const users = new Set(await loadUsers(env));
+  return Response.json({ ids: ids.filter((id) => users.has(id)) }, { headers: { "Cache-Control": "no-store" } });
+}
+
+async function badgeRemove(request, env) {
+  const body = await request.json();
+  if (!Number.isSafeInteger(body.id) || typeof body.secret !== "string") {
+    return new Response("bad request\n", { status: 400 });
+  }
+  const stored = await env.BLOBS.get("badge:secret:" + body.id);
+  if (stored === null || stored !== (await sha256Hex(body.secret))) return Response.json({ removed: false });
+  await env.BLOBS.delete("badge:secret:" + body.id);
+  const users = (await loadUsers(env)).filter((id) => id !== body.id);
+  await env.BLOBS.put("badge:users", JSON.stringify(users));
+  return Response.json({ removed: true });
+}
+
+async function loadUsers(env) {
+  const raw = await env.BLOBS.get("badge:users");
+  return raw ? JSON.parse(raw) : [];
+}
+
+function randomHex(bytes) {
+  const buffer = new Uint8Array(bytes);
+  crypto.getRandomValues(buffer);
+  return Array.from(buffer, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256Hex(text) {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)));
+  return Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 async function forward(env, token, data) {

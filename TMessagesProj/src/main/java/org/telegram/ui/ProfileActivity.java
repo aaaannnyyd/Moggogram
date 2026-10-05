@@ -11840,6 +11840,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     } else if (user.verified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.AccDescrVerified);
+                    } else if (org.telegram.messenger.MoggoBadges.has(currentAccount, user)) {
+                        nameTextView[a].setRightDrawable2(org.telegram.messenger.MoggoBadges.drawable(AndroidUtilities.dp(20)));
+                        nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.MoggoBadgeDescription);
                     } else if (getMessagesController().isDialogMuted(dialogId != 0 ? dialogId : userId, topicId)) {
                         nameTextView[a].setRightDrawable2(getThemedDrawable(Theme.key_drawable_muteIconDrawable));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.NotificationsMuted);
@@ -11873,6 +11876,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextView[a].setRightDrawable2(getScamDrawable(user.scam ? 0 : 1));
                     } else if (user.verified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
+                    } else if (org.telegram.messenger.MoggoBadges.has(currentAccount, user)) {
+                        nameTextView[a].setRightDrawable2(org.telegram.messenger.MoggoBadges.drawable(AndroidUtilities.dp(20)));
                     } else {
                         nameTextView[a].setRightDrawable2(null);
                     }

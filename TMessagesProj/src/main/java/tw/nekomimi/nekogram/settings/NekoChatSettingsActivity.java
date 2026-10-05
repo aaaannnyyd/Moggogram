@@ -120,6 +120,8 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     private final AbstractConfigCell deleteChatForBothSidesRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDeleteChatForBothSides()));
     private final AbstractConfigCell showMessageIDRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getShowMessageID()));
     private final AbstractConfigCell moggoFloatingPlayerRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getMoggoFloatingPlayer()));
+    private final AbstractConfigCell moggoShowMyBadgeRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getMoggoShowMyBadge()));
+    private final AbstractConfigCell moggoShowBadgesRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getMoggoShowBadges()));
     private final AbstractConfigCell showSeconds = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.showSeconds));
     private final AbstractConfigCell useEditedIconRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getUseEditedIcon()));
     private final AbstractConfigCell customEditedMessageRow = cellGroup.appendCell(new ConfigCellTextInput(null, NaConfig.INSTANCE.getCustomEditedMessage(), "", null));
@@ -527,7 +529,12 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
 
         // Cells: Set OnSettingChanged Callbacks
         cellGroup.callBackSettingsChanged = (key, newValue) -> {
-            if (key.equals(NaConfig.INSTANCE.getMoggoFloatingPlayer().getKey())) {
+            if (key.equals(NaConfig.INSTANCE.getMoggoShowMyBadge().getKey())) {
+                for (int a = 0; a < org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT; a++) org.telegram.messenger.MoggoBadges.syncOwnBadge(a);
+                getNotificationCenter().postNotificationName(org.telegram.messenger.NotificationCenter.updateInterfaces, org.telegram.messenger.MessagesController.UPDATE_MASK_NAME);
+            } else if (key.equals(NaConfig.INSTANCE.getMoggoShowBadges().getKey())) {
+                getNotificationCenter().postNotificationName(org.telegram.messenger.NotificationCenter.updateInterfaces, org.telegram.messenger.MessagesController.UPDATE_MASK_NAME);
+            } else if (key.equals(NaConfig.INSTANCE.getMoggoFloatingPlayer().getKey())) {
                 if ((boolean) newValue) org.telegram.ui.Components.MoggoFloatingPlayer.requestPermissionIfNeeded(getParentActivity());
             } else if (key.equals(NekoConfig.disableProximityEvents.getKey())) {
                 MediaController.getInstance().recreateProximityWakeLock();

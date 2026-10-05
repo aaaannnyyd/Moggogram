@@ -394,4 +394,7 @@
 На Xiaomi, Huawei, Honor, OPPO и realme также включите «Автозапуск» для Moggogram в настройках телефона.</string>
     <string name="MoggoPushAllow">Разрешить</string>
     <string name="MoggoPushServiceText">Соединение для уведомлений активно</string>
+    <string name="MoggoShowMyBadge">Показывать мой значок Moggogram</string>
+    <string name="MoggoShowBadges">Показывать значки Moggogram у других</string>
+    <string name="MoggoBadgeDescription">Пользуется Moggogram</string>
 </resources>

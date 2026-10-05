@@ -102,6 +102,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
     private StatusDrawable[] statusDrawables = new StatusDrawable[6];
     private AvatarDrawable avatarDrawable = new AvatarDrawable();
     private int currentAccount = UserConfig.selectedAccount;
+    private boolean moggoBadgeShown;
     private boolean occupyStatusBar = true;
     private int leftPadding = dp(8);
     private int rightAvatarPadding = 0;
@@ -1100,7 +1101,15 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
             titleTextView.setRightDrawable2(verifiedDrawable);
             rightDrawableIsScamOrVerified = true;
             rightDrawable2ContentDescription = getString(R.string.AccDescrVerified);
-        } else if (titleTextView.getRightDrawable() instanceof ScamDrawable) {
+            moggoBadgeShown = false;
+        } else if (parentFragment != null && parentFragment.getCurrentUser() != null
+                && org.telegram.messenger.MoggoBadges.has(currentAccount, parentFragment.getCurrentUser())) {
+            titleTextView.setRightDrawable2(org.telegram.messenger.MoggoBadges.drawable(dp(18)));
+            rightDrawableIsScamOrVerified = true;
+            rightDrawable2ContentDescription = getString(R.string.MoggoBadgeDescription);
+            moggoBadgeShown = true;
+        } else if (moggoBadgeShown || titleTextView.getRightDrawable() instanceof ScamDrawable) {
+            moggoBadgeShown = false;
             titleTextView.setRightDrawable2(null);
             rightDrawableIsScamOrVerified = false;
             rightDrawable2ContentDescription = null;

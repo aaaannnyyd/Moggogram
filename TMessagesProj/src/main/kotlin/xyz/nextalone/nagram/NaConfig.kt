@@ -984,6 +984,18 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
+    val moggoShowMyBadge =
+        addConfig(
+            "MoggoShowMyBadge",
+            ConfigItem.configTypeBool,
+            true
+        )
+    val moggoShowBadges =
+        addConfig(
+            "MoggoShowBadges",
+            ConfigItem.configTypeBool,
+            true
+        )
     val moggoFloatingPlayer =
         addConfig(
             "MoggoFloatingPlayer",

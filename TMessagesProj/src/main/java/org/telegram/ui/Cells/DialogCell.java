@@ -643,6 +643,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     private StaticLayout mentionLayout;
 
     private boolean drawVerified;
+    private boolean drawMoggoBadge; // Moggogram: badge drawn in the verified slot
+    private static android.graphics.drawable.Drawable moggoBadgeDrawable;
     private boolean drawBotVerified;
     private boolean drawPremium;
     private final View emojiStatusView;
@@ -1305,6 +1307,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
         drawNameLock = false;
         drawVerified = false;
+        drawMoggoBadge = false;
         drawBotVerified = false;
         drawPremium = false;
         drawForwardIcon = false;
@@ -1519,6 +1522,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             Theme.dialogs_fakeDrawable.checkText();
                         } else {
                             drawVerified = !forbidVerified && user.verified;
+                            if (!drawVerified && !forbidVerified && org.telegram.messenger.MoggoBadges.has(currentAccount, user)) {
+                                drawVerified = true;
+                                drawMoggoBadge = true;
+                            }
                             drawBotVerified = !forbidVerified && !UserObject.isUserSelf(user) && user.bot_verification_icon != 0;
                         }
                         drawPremium = MessagesController.getInstance(currentAccount).isPremiumUser(user) && UserConfig.getInstance(currentAccount).clientUserId != user.id && user.id != 0;
@@ -4577,10 +4584,19 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 if ((!(useForceThreeLines || SharedConfig.useThreeLinesLayout) || isForumCell()) && hasTags()) {
                     y -= dp(9);
                 }
-                setDrawableBounds(Theme.dialogs_verifiedDrawable, nameMuteLeft - dp(1), y);
-                setDrawableBounds(Theme.dialogs_verifiedCheckDrawable, nameMuteLeft - dp(1), y);
-                Theme.dialogs_verifiedDrawable.draw(canvas);
-                Theme.dialogs_verifiedCheckDrawable.draw(canvas);
+                if (drawMoggoBadge) {
+                    int size = Theme.dialogs_verifiedDrawable.getIntrinsicWidth();
+                    if (moggoBadgeDrawable == null || moggoBadgeDrawable.getIntrinsicWidth() != size) {
+                        moggoBadgeDrawable = org.telegram.messenger.MoggoBadges.drawable(size);
+                    }
+                    setDrawableBounds(moggoBadgeDrawable, nameMuteLeft - dp(1), y);
+                    moggoBadgeDrawable.draw(canvas);
+                } else {
+                    setDrawableBounds(Theme.dialogs_verifiedDrawable, nameMuteLeft - dp(1), y);
+                    setDrawableBounds(Theme.dialogs_verifiedCheckDrawable, nameMuteLeft - dp(1), y);
+                    Theme.dialogs_verifiedDrawable.draw(canvas);
+                    Theme.dialogs_verifiedCheckDrawable.draw(canvas);
+                }
             } else if (drawPremium) {
                 int y = dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 12.5f : 15.5f);
                 if ((!(useForceThreeLines || SharedConfig.useThreeLinesLayout) || isForumCell()) && hasTags()) {
@@ -5655,7 +5671,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             }
         }
         if (drawVerified) {
-            sb.append(getString(R.string.AccDescrVerified));
+            sb.append(getString(drawMoggoBadge ? R.string.MoggoBadgeDescription : R.string.AccDescrVerified));
             sb.append(". ");
         }
         if (dialogMuted) {

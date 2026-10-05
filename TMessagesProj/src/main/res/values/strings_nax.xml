@@ -396,4 +396,7 @@
 On Xiaomi, Huawei, Honor, OPPO and realme also enable "Autostart" for Moggogram in the phone settings.</string>
     <string name="MoggoPushAllow">Allow</string>
     <string name="MoggoPushServiceText">Keeping the connection for notifications</string>
+    <string name="MoggoShowMyBadge">Show my Moggogram badge to others</string>
+    <string name="MoggoShowBadges">Show Moggogram badges</string>
+    <string name="MoggoBadgeDescription">Uses Moggogram</string>
 </resources>
