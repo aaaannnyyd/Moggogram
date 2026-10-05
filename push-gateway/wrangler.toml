@@ -3,8 +3,8 @@ main = "src/index.js"
 compatibility_date = "2026-09-01"
 
 # KV for Web Push payloads larger than one FCM message; the id is filled in by `wrangler kv namespace create BLOBS`.
-# [[kv_namespaces]]
-# binding = "BLOBS"
-# id = ""
+[[kv_namespaces]]
+binding = "BLOBS"
+id = "993e12b08d8f4e999d7e3b3b0c1e8e04"
 
 # Secret (not in this file): wrangler secret put FCM_SERVICE_ACCOUNT < service-account.json

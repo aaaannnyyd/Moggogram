@@ -45,6 +45,10 @@ public class GooglePushListenerServiceProvider implements PushListenerController
                             if (!task.isSuccessful()) {
                                 FileLog.d("Failed to get regid");
                                 SharedConfig.pushStringStatus = "__FIREBASE_FAILED__";
+                                if (MoggoPushGateway.isActive()) {
+                                    AndroidUtilities.runOnUIThread(MoggoPushFix::onGatewayTokenFailed);
+                                    return;
+                                }
                                 PushListenerController.sendRegistrationToServer(getPushType(), null);
                                 return;
                             }

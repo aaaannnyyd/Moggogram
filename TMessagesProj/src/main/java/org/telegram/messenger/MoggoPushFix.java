@@ -78,6 +78,26 @@ public final class MoggoPushFix {
         FileLog.d("moggogram: push switched to the FCM gateway");
     }
 
+    /**
+     * No FCM token (Play services can't reach Firebase, e.g. behind a fake-ip VPN): don't leave the
+     * user without notifications — fall back to the keep-alive connection and retry FCM next start.
+     */
+    public static void onGatewayTokenFailed() {
+        if (!MoggoPushGateway.isActive()) return;
+        ApplicationLoader.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit().putBoolean(KEY_GATEWAY, false).apply();
+        NaConfig.INSTANCE.getPushServiceType().setConfigInt(0);
+        NaConfig.INSTANCE.getPushServiceTypeInAppDialog().setConfigBool(true);
+        MessagesController.getGlobalNotificationsSettings().edit().putBoolean("pushService", true).putBoolean("pushConnection", true).apply();
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            MessagesController.getNotificationsSettings(a).edit().putBoolean("pushService", true).putBoolean("pushConnection", true).apply();
+        }
+        ApplicationLoader.resetPushProvider();
+        enablePushConnection();
+        ApplicationLoader.startPushService();
+        FileLog.d("moggogram: no FCM token, back to the keep-alive connection");
+    }
+
     public static void enablePushConnection() {
         if (NaConfig.INSTANCE.getPushServiceType().Int() != 0) return;
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
