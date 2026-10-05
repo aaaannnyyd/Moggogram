@@ -408,7 +408,7 @@ On Xiaomi, Huawei, Honor, OPPO and realme also enable "Autostart" for Moggogram 
     <string name="MoggoTestModeUnified">Mode: UnifiedPush. Check that the distributor app (ntfy) is installed and running.</string>
     <string name="MoggoTestModeNoToken">Google push has not registered yet. Open Moggogram again in a minute and repeat the check.</string>
     <string name="MoggoCrashReports">Send crash reports to the developer</string>
-    <string name="MoggoChangelogTitle">What's new in %1$s</string>
+    <string name="MoggoChangelogTitle">What\'s new in %1$s</string>
     <string name="MoggoDownloadHow">How to save</string>
     <string name="MoggoDownloadZip">One ZIP archive (files named by date and sender)</string>
     <string name="MoggoDownloadFoundZip">Found %1$d files, %2$s. They will be packed into one ZIP archive in Downloads.</string>
