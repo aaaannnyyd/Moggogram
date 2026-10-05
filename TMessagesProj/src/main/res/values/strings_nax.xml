@@ -420,4 +420,22 @@ On Xiaomi, Huawei, Honor, OPPO and realme also enable "Autostart" for Moggogram 
     <string name="MoggoDecoyRemove">Remove decoy passcode</string>
     <string name="MoggoDecoyChats">Chats hidden by the decoy</string>
     <string name="MoggoDecoyAbout">Unlocking with the decoy passcode opens your account as usual, but the chosen chats disappear from the chat list, search and notifications. They come back after unlocking with your real passcode.</string>
+    <string name="MoggoChatStats">Chat statistics</string>
+    <string name="MoggoChatStatsLoading">Reading history: %1$d messages…</string>
+    <string name="MoggoChatStatsEmpty">No messages to analyse.</string>
+    <string name="MoggoChatStatsOverview">Overview</string>
+    <string name="MoggoChatStatsTotal">Messages: %1$d</string>
+    <string name="MoggoChatStatsLimited">(latest only)</string>
+    <string name="MoggoChatStatsPeriod">From %1$s to %2$s (%3$d days)</string>
+    <string name="MoggoChatStatsPerDay">Per day on average: %1$s</string>
+    <string name="MoggoChatStatsAvgLength">Average text length: %1$d characters</string>
+    <string name="MoggoChatStatsSenders">Who writes</string>
+    <string name="MoggoChatStatsMedia">Media</string>
+    <string name="MoggoChatStatsHours">By hour</string>
+    <string name="MoggoChatStatsWeekdays">By day of week</string>
+    <string name="MoggoChatStatsWords">Frequent words</string>
+    <string name="MoggoChatStatsVoices">Voice messages</string>
+    <string name="MoggoChatStatsRounds">Video messages</string>
+    <string name="MoggoChatStatsStickers">Stickers</string>
+    <string name="MoggoChatStatsLinks">Links</string>
 </resources>

@@ -457,6 +457,7 @@ public class ChatActivity extends BaseFragment implements
 
     private final static int nkheaderbtn_hide_title = 2029;
     private final static int moggo_download_media = 2090;
+    private final static int moggo_chat_stats = 2091;
 
     // shared with actionbar
     private final static int nkbtn_translate = 2008;
@@ -4952,6 +4953,7 @@ public class ChatActivity extends BaseFragment implements
             }
             hideTitleItem = NaConfig.INSTANCE.getChatMenuItemHideTitle().Bool() ? headerItem.lazilyAddSubItem(nkheaderbtn_hide_title, R.drawable.hide_title, getString(R.string.HideTitle)) : null;
             if (currentEncryptedChat == null && chatMode == 0) headerItem.lazilyAddSubItem(moggo_download_media, R.drawable.msg_download, getString(R.string.MoggoDownloadMedia));
+            if (currentEncryptedChat == null && chatMode == 0) headerItem.lazilyAddSubItem(moggo_chat_stats, R.drawable.msg_stats, getString(R.string.MoggoChatStats));
             if (NaConfig.INSTANCE.getChatMenuItemViewDeleted().Bool() && NaConfig.INSTANCE.getEnableSaveDeletedMessages().Bool()) headerItem.lazilyAddSubItem(nkbtn_viewDeleted, R.drawable.msg_view_file, getString(R.string.ViewDeleted));
             if (NaConfig.INSTANCE.getChatMenuItemClearDeleted().Bool() && NaConfig.INSTANCE.getEnableSaveDeletedMessages().Bool()) headerItem.lazilyAddSubItem(nkbtn_clearDeleted, R.drawable.msg_clear, getString(R.string.ClearDeleted));
             if (!isTopic) {
@@ -46661,6 +46663,8 @@ public class ChatActivity extends BaseFragment implements
         } else if (id == nkbtn_repeatascopy) {
             repeatMessage(false, true);
             clearSelectionMode();
+        } else if (id == moggo_chat_stats) {
+            presentFragment(new MoggoChatStatsActivity(dialog_id));
         } else if (id == moggo_download_media) {
             org.telegram.ui.Components.MoggoDownloadMediaAlert.show(this, dialog_id);
         } else if (id == nkheaderbtn_hide_title) {

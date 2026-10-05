@@ -418,4 +418,22 @@
     <string name="MoggoDecoyRemove">Удалить пароль-приманку</string>
     <string name="MoggoDecoyChats">Чаты, скрытые приманкой</string>
     <string name="MoggoDecoyAbout">При вводе пароля-приманки аккаунт откроется как обычно, но выбранные чаты пропадут из списка, поиска и уведомлений. Они вернутся после разблокировки настоящим паролем.</string>
+    <string name="MoggoChatStats">Статистика чата</string>
+    <string name="MoggoChatStatsLoading">Читаю историю: %1$d сообщений…</string>
+    <string name="MoggoChatStatsEmpty">Нет сообщений для анализа.</string>
+    <string name="MoggoChatStatsOverview">Общее</string>
+    <string name="MoggoChatStatsTotal">Сообщений: %1$d</string>
+    <string name="MoggoChatStatsLimited">(только последние)</string>
+    <string name="MoggoChatStatsPeriod">С %1$s по %2$s (%3$d дн.)</string>
+    <string name="MoggoChatStatsPerDay">В среднем в день: %1$s</string>
+    <string name="MoggoChatStatsAvgLength">Средняя длина текста: %1$d символов</string>
+    <string name="MoggoChatStatsSenders">Кто сколько пишет</string>
+    <string name="MoggoChatStatsMedia">Медиа</string>
+    <string name="MoggoChatStatsHours">По часам</string>
+    <string name="MoggoChatStatsWeekdays">По дням недели</string>
+    <string name="MoggoChatStatsWords">Частые слова</string>
+    <string name="MoggoChatStatsVoices">Голосовые</string>
+    <string name="MoggoChatStatsRounds">Кружки</string>
+    <string name="MoggoChatStatsStickers">Стикеры</string>
+    <string name="MoggoChatStatsLinks">Ссылки</string>
 </resources>
