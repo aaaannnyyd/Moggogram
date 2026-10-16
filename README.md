@@ -1,8 +1,10 @@
 # Moggogram
 
+**Русский** | [English](README.en.md)
+
 Неофициальный Telegram-клиент для Android с открытым исходным кодом.
 
-> Unofficial open-source Telegram client for Android. A fork of [NagramX](https://github.com/risin42/NagramX), which itself is based on [Nagram](https://github.com/NextAlone/Nagram), [Nekogram](https://github.com/Nekogram/Nekogram) and the official [Telegram for Android](https://github.com/DrKLO/Telegram).
+> Unofficial open-source Telegram client for Android, a fork of [NagramX](https://github.com/risin42/NagramX). **[Read in English →](README.en.md)**
 
 ## Откуда он взялся
 
