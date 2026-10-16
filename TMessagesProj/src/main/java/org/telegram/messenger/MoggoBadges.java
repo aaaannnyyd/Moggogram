@@ -35,7 +35,7 @@ import xyz.nextalone.nagram.NaConfig;
 /**
  * Moggogram badge next to the names of other Moggogram users.
  * Registry lives in the push gateway (push-gateway/src/index.js): a client proves its account by
- * sending "/start moggogram" to the badge bot from it, then claims a removal secret. Lookups are
+ * sending "/start moggogram h_<sha256 of a secret made on the phone>" to the badge bot from it. Lookups are
  * batched, cached for a day and refresh names through updateInterfaces.
  */
 public final class MoggoBadges {
@@ -171,45 +171,43 @@ public final class MoggoBadges {
                 registering.remove(account);
                 return;
             }
+            // The secret never leaves the phone: the bot only sees its SHA-256 (the gateway stores it
+            // from the message Telegram vouches for), so nobody can intercept it on the way back.
+            final String secret = randomHex(24);
             TLRPC.TL_messages_sendMessage req = new TLRPC.TL_messages_sendMessage();
             req.peer = controller.getInputPeer(botId);
-            req.message = "/start moggogram";
+            req.message = "/start moggogram h_" + sha256Hex(secret);
             req.random_id = Utilities.random.nextLong();
             req.silent = true;
             ConnectionsManager.getInstance(account).sendRequest(req, (response, error) -> {
                 if (response instanceof TLRPC.Updates) {
                     controller.processUpdates((TLRPC.Updates) response, false);
                 }
-                AndroidUtilities.runOnUIThread(() -> controller.deleteDialog(botId, 0, true), 1500);
-                Utilities.globalQueue.postRunnable(() -> claim(account, userId), 1500);
+                AndroidUtilities.runOnUIThread(() -> {
+                    controller.deleteDialog(botId, 0, true);
+                    registering.remove(account);
+                    if (error != null) return;
+                    prefs().edit().putString("secret_" + userId, secret).apply();
+                    NotificationCenter.getInstance(account).postNotificationName(
+                            NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_NAME);
+                }, 1500);
             });
         });
     }
 
-    private static void claim(int account, long userId) {
-        String secret = null;
-        for (int attempt = 0; attempt < 6 && secret == null; attempt++) {
-            try {
-                String body = get("badge/claim/" + userId);
-                if (body != null) secret = new JSONObject(body).getString("secret");
-            } catch (Exception e) {
-                FileLog.e("moggo badge claim: " + e);
-            }
-            if (secret == null) {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException ignore) {
-                }
-            }
+    private static String randomHex(int bytes) {
+        byte[] buffer = new byte[bytes];
+        Utilities.random.nextBytes(buffer);
+        return Utilities.bytesToHex(buffer).toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private static String sha256Hex(String text) {
+        try {
+            byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8));
+            return Utilities.bytesToHex(digest).toLowerCase(java.util.Locale.ROOT);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
-        final String result = secret;
-        AndroidUtilities.runOnUIThread(() -> {
-            registering.remove(account);
-            if (result == null) return;
-            prefs().edit().putString("secret_" + userId, result).apply();
-            NotificationCenter.getInstance(account).postNotificationName(
-                    NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_NAME);
-        });
     }
 
     private static void unregister(long userId, String secret) {
@@ -238,17 +236,6 @@ public final class MoggoBadges {
             }
             if (c.getResponseCode() != 200) throw new IllegalStateException("http " + c.getResponseCode());
             return read(c.getInputStream());
-        } finally {
-            c.disconnect();
-        }
-    }
-
-    private static String get(String path) throws Exception {
-        HttpURLConnection c = (HttpURLConnection) new URL(MoggoPushGateway.base() + path).openConnection();
-        try {
-            c.setConnectTimeout(8000);
-            c.setReadTimeout(8000);
-            return c.getResponseCode() == 200 ? read(c.getInputStream()) : null;
         } finally {
             c.disconnect();
         }

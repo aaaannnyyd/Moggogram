@@ -179,6 +179,14 @@ android {
         }
     }
 
+    // Moggogram: release.keystore in the repo is NagramX's public key. A release signed with it could
+    // never be updated by real Moggogram builds, so a release build without KEYSTORE_FILE stops here.
+    gradle.taskGraph.whenReady { graph ->
+        if (!keystoreFile && graph.allTasks.any { it.name.toLowerCase().contains('release') && it.project == project }) {
+            throw new GradleException('KEYSTORE_FILE is not set (local.properties): refusing to sign a release with the public release.keystore')
+        }
+    }
+
     signingConfigs {
         release {
             storeFile keystoreFile ? file(keystoreFile) : project.file('release.keystore')

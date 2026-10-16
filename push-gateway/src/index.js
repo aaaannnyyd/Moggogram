@@ -13,8 +13,12 @@
 // Secrets / bindings (see wrangler.toml):
 //   FCM_SERVICE_ACCOUNT  JSON key of a Firebase service account (wrangler secret put)
 //   BLOBS                KV namespace for oversized payloads
+//   LIMIT                rate limiter (per IP / per token) for the endpoints anyone can call
 
 const MAX_INLINE_BASE64 = 3000; // FCM data payload limit is 4 KB in total
+const MAX_WEBPUSH_BYTES = 8 * 1024; // Telegram sends at most 4 KB
+const MAX_GEMINI_BYTES = 20 * 1024 * 1024;
+const FCM_TOKEN = /^[\w:-]{100,400}$/;
 const BLOB_TTL_SECONDS = 300;
 
 let cachedAccessToken = null;
@@ -24,37 +28,66 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const parts = url.pathname.split("/").filter(Boolean);
+    const ip = request.headers.get("CF-Connecting-IP") || "";
     try {
       if (parts.length === 2 && (request.method === "POST" || request.method === "PUT")) {
         const token = decodeURIComponent(parts[1]);
+        if ((parts[0] === "wp" || parts[0] === "sp") && !FCM_TOKEN.test(token)) {
+          return new Response("bad token\n", { status: 404 });
+        }
         if (parts[0] === "wp") return await handleWebPush(request, env, token);
-        if (parts[0] === "sp") return await forward(env, token, { t: "sp" });
+        if (parts[0] === "sp") {
+          if (!(await allowed(env, "sp:" + token))) return tooMany();
+          return await forward(env, token, { t: "sp" });
+        }
       }
       if (parts.length === 2 && parts[0] === "k" && request.method === "GET") {
         return await handleBlobFetch(env, parts[1]);
       }
       if (parts[0] === "tg" && request.method === "POST") return await handleBotUpdate(request, env);
       if (parts[0] === "test" && parts.length === 2 && request.method === "POST") {
-        return await forward(env, decodeURIComponent(parts[1]), { t: "test", ts: String(Date.now()) });
+        const token = decodeURIComponent(parts[1]);
+        if (!FCM_TOKEN.test(token)) return new Response("bad token\n", { status: 400 });
+        if (!(await allowed(env, "test:" + token)) || !(await allowed(env, "ip:" + ip))) return tooMany();
+        return await forward(env, token, { t: "test", ts: String(Date.now()) });
       }
+      const open = ["crash", "gemini", "gemini-models", "badge"];
+      if (open.includes(parts[0]) && !(await allowed(env, "ip:" + ip))) return tooMany();
       if (parts[0] === "crash" && parts.length === 1 && request.method === "POST") return await storeCrash(request, env);
       if (parts[0] === "gemini" && parts.length === 2 && request.method === "POST") return await geminiProxy(request, parts[1]);
       if (parts[0] === "gemini-models" && parts.length === 1 && request.method === "GET") return await geminiModels(request);
       if (parts[0] === "badge") {
-        if (parts[1] === "claim" && parts.length === 3 && request.method === "GET") return await badgeClaim(env, parts[2]);
         if (parts[1] === "check" && request.method === "POST") return await badgeCheck(request, env);
         if (parts[1] === "remove" && request.method === "POST") return await badgeRemove(request, env);
       }
       if (parts.length === 0) return new Response("moggogram push gateway\n");
       return new Response("not found\n", { status: 404 });
     } catch (e) {
-      return new Response("error: " + (e && e.message ? e.message : e) + "\n", { status: 502 });
+      console.error(e && e.stack ? e.stack : String(e));
+      return new Response("error\n", { status: 502 });
     }
   },
 };
 
+// Rate limit (Workers rate limiting binding, see wrangler.toml). Without the binding: no limit.
+async function allowed(env, key) {
+  if (!env.LIMIT) return true;
+  const { success } = await env.LIMIT.limit({ key });
+  return success;
+}
+
+function tooMany() {
+  return new Response("slow down\n", { status: 429 });
+}
+
+function tooBig(request, max) {
+  return Number(request.headers.get("Content-Length") || "0") > max;
+}
+
 async function handleWebPush(request, env, token) {
+  if (tooBig(request, MAX_WEBPUSH_BYTES)) return new Response("too large\n", { status: 413 });
   const body = new Uint8Array(await request.arrayBuffer());
+  if (body.length > MAX_WEBPUSH_BYTES) return new Response("too large\n", { status: 413 });
   const encoding = request.headers.get("Content-Encoding") || "aesgcm";
   const encryption = request.headers.get("Encryption") || "";
   const cryptoKey = request.headers.get("Crypto-Key") || "";
@@ -95,6 +128,7 @@ async function geminiProxy(request, model) {
   }
   const key = request.headers.get("X-Gemini-Key");
   if (!key) return new Response("no key\n", { status: 401 });
+  if (tooBig(request, MAX_GEMINI_BYTES)) return new Response("too large\n", { status: 413 });
   const response = await fetch(
     "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent",
     {
@@ -125,8 +159,10 @@ const CRASH_TTL_SECONDS = 30 * 24 * 3600;
 const MAX_CRASH_BYTES = 64 * 1024;
 
 async function storeCrash(request, env) {
-  const text = await request.text();
-  if (text.length === 0 || text.length > MAX_CRASH_BYTES) return new Response("bad size\n", { status: 413 });
+  if (tooBig(request, MAX_CRASH_BYTES)) return new Response("bad size\n", { status: 413 });
+  const bytes = await request.arrayBuffer();
+  if (bytes.byteLength === 0 || bytes.byteLength > MAX_CRASH_BYTES) return new Response("bad size\n", { status: 413 });
+  const text = new TextDecoder().decode(bytes);
   try {
     JSON.parse(text);
   } catch (e) {
@@ -138,16 +174,17 @@ async function storeCrash(request, env) {
 }
 
 // ---- Moggogram badges ----
-// A client proves it owns a Telegram account by sending "/start moggogram" to the badge bot from
-// that account (Telegram vouches for message.from.id). The gateway then lists the id and keeps a
-// one-time claim with a secret that the client fetches within 5 minutes; the secret is needed to
-// remove the badge later. Storage (KV): "badge:users" = JSON array of ids, "badge:secret:<id>" = sha256.
+// A client proves it owns a Telegram account by sending "/start moggogram h_<sha256 hex>" to the
+// badge bot from that account (Telegram vouches for message.from.id). The secret itself is made on
+// the phone and never travels; the gateway keeps only its hash, needed to remove the badge later.
+// Storage (KV): "badge:users" = JSON array of ids, "badge:secret:<id>" = sha256.
 
-const CLAIM_TTL_SECONDS = 300;
 const MAX_CHECK_IDS = 200;
 
 async function handleBotUpdate(request, env) {
-  if (request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== env.BOT_WEBHOOK_SECRET) {
+  const expected = env.BOT_WEBHOOK_SECRET || "";
+  const given = request.headers.get("X-Telegram-Bot-Api-Secret-Token") || "";
+  if (!expected || !(await sameSecret(given, expected))) {
     return new Response("forbidden\n", { status: 403 });
   }
   const update = await request.json();
@@ -155,26 +192,23 @@ async function handleBotUpdate(request, env) {
   if (!message || !message.from || message.from.is_bot || typeof message.text !== "string") {
     return new Response("ok");
   }
-  if (!/^\/start(@\w+)? moggogram\b/.test(message.text)) return new Response("ok");
+  const match = /^\/start(@\w+)? moggogram h_([0-9a-f]{64})$/.exec(message.text);
+  if (!match) return new Response("ok");
   const id = message.from.id;
-  const secret = randomHex(24);
-  await env.BLOBS.put("badge:secret:" + id, await sha256Hex(secret));
+  await env.BLOBS.put("badge:secret:" + id, match[2]);
   const users = await loadUsers(env);
   if (!users.includes(id)) {
     users.push(id);
     await env.BLOBS.put("badge:users", JSON.stringify(users));
   }
-  await env.BLOBS.put("claim:" + id, secret, { expirationTtl: CLAIM_TTL_SECONDS });
   return new Response("ok");
 }
 
-async function badgeClaim(env, idText) {
-  if (!/^\d{1,20}$/.test(idText)) return new Response("bad id\n", { status: 400 });
-  const key = "claim:" + idText;
-  const secret = await env.BLOBS.get(key);
-  if (secret === null) return new Response("not found\n", { status: 404 });
-  await env.BLOBS.delete(key);
-  return Response.json({ secret });
+// Constant-time comparison (both sides hashed first so the lengths match).
+async function sameSecret(a, b) {
+  const enc = new TextEncoder();
+  const [x, y] = await Promise.all([a, b].map((v) => crypto.subtle.digest("SHA-256", enc.encode(v))));
+  return crypto.subtle.timingSafeEqual(x, y);
 }
 
 async function badgeCheck(request, env) {
@@ -193,7 +227,7 @@ async function badgeRemove(request, env) {
     return new Response("bad request\n", { status: 400 });
   }
   const stored = await env.BLOBS.get("badge:secret:" + body.id);
-  if (stored === null || stored !== (await sha256Hex(body.secret))) return Response.json({ removed: false });
+  if (stored === null || !(await sameSecret(stored, await sha256Hex(body.secret)))) return Response.json({ removed: false });
   await env.BLOBS.delete("badge:secret:" + body.id);
   const users = (await loadUsers(env)).filter((id) => id !== body.id);
   await env.BLOBS.put("badge:users", JSON.stringify(users));
@@ -235,7 +269,8 @@ async function forward(env, token, data) {
   if (response.status === 404 || text.includes("UNREGISTERED")) {
     return new Response("gone\n", { status: 410 });
   }
-  return new Response("fcm " + response.status + ": " + text + "\n", { status: 502 });
+  console.error("fcm " + response.status + ": " + text);
+  return new Response("fcm error\n", { status: 502 });
 }
 
 async function getAccessToken(account) {

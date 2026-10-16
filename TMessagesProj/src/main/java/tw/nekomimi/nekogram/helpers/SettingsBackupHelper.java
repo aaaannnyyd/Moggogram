@@ -143,7 +143,7 @@ public final class SettingsBackupHelper {
         JSONObject jsonConfig = new JSONObject();
         for (Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
             String key = entry.getKey();
-            if ("nkmrcfg".equals(sp) && isDeviceSpecificPushKey(key)) {
+            if ("nkmrcfg".equals(sp) && (isDeviceSpecificPushKey(key) || isMoggoSecret(key))) {
                 continue;
             }
             if (!includeApiKeys && (key.endsWith("Key") || key.contains("Token") || key.contains("AccountID"))) {
@@ -321,6 +321,12 @@ public final class SettingsBackupHelper {
         });
         builder.setNegativeButton(getString(R.string.Cancel), null);
         builder.show();
+    }
+
+    /** Moggogram: Google session cookies and the Gemini key never go into backups or cloud sync. */
+    private static boolean isMoggoSecret(String key) {
+        return key.equals(NaConfig.INSTANCE.getMoggoGeminiCookies().getKey())
+                || key.equals(NaConfig.INSTANCE.getMoggoGeminiKey().getKey());
     }
 
     private static boolean isDeviceSpecificPushKey(String key) {

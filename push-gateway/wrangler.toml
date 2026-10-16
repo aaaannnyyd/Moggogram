@@ -8,3 +8,10 @@ binding = "BLOBS"
 id = "993e12b08d8f4e999d7e3b3b0c1e8e04"
 
 # Secret (not in this file): wrangler secret put FCM_SERVICE_ACCOUNT < service-account.json
+
+# Rate limit for endpoints anyone can call (crash reports, test pushes, badges, Gemini proxy):
+# 30 requests a minute per IP / per FCM token.
+[[ratelimits]]
+name = "LIMIT"
+namespace_id = "1001"
+simple = { limit = 30, period = 60 }

@@ -58,6 +58,14 @@ public final class MoggoGeminiWeb {
 
     public static void signOut() {
         NaConfig.INSTANCE.getMoggoGeminiCookies().setConfigString("");
+        // The sign-in WebView keeps its own copy of the Google session.
+        try {
+            android.webkit.CookieManager manager = android.webkit.CookieManager.getInstance();
+            manager.removeAllCookies(null);
+            manager.flush();
+        } catch (Throwable e) {
+            FileLog.e(e);
+        }
     }
 
     /** Saves the cookie header of a Google sign-in; false if it has no Google session in it. */

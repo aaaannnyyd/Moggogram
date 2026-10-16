@@ -119,7 +119,31 @@ public final class MoggoChatArchive implements NotificationCenter.NotificationCe
             File fallback = ApplicationLoader.applicationContext.getExternalFilesDir("Архив");
             if (fallback != null) root = fallback;
         }
+        hideFromGallery(root);
         return new File(root, name);
+    }
+
+    /** Archived photos/videos/voice must not show up in the gallery or get picked up by media backups. */
+    private static void hideFromGallery(File root) {
+        File marker = new File(root, ".nomedia");
+        if (marker.exists()) return;
+        try {
+            if (root.exists() || root.mkdirs()) marker.createNewFile();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
+
+    // Media keeps its extension only if it is a plain media/document type; anything a browser could
+    // run next to chat.html (html, svg, js...) is stored as .bin.
+    private static final java.util.Set<String> SAFE_EXTENSIONS = new java.util.HashSet<>(java.util.Arrays.asList(
+            "jpg", "jpeg", "png", "gif", "webp", "heic", "bmp", "mp4", "mov", "webm", "mkv", "3gp", "ogg", "oga", "opus",
+            "mp3", "m4a", "aac", "wav", "flac", "pdf", "txt", "zip", "rar", "7z", "doc", "docx", "xls", "xlsx", "ppt",
+            "pptx", "apk", "tgs", "webm"));
+
+    static String safeExtension(String ext) {
+        String e = ext == null ? "" : ext.toLowerCase(java.util.Locale.ROOT);
+        return SAFE_EXTENSIONS.contains(e) ? e : "bin";
     }
 
     // ---- events (UI thread) ----
@@ -385,6 +409,7 @@ public final class MoggoChatArchive implements NotificationCenter.NotificationCe
             if (source == null) return;
             String ext = FileLoader.getFileExtension(source);
             if (TextUtils.isEmpty(ext)) ext = mo.isPhoto() ? "jpg" : "bin";
+            ext = safeExtension(ext);
             File dir = new File(folder(account, dialogId), "media");
             if (!dir.exists() && !dir.mkdirs()) return;
             File dest = new File(dir, mo.getId() + "." + ext);

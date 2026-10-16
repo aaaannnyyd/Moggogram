@@ -76,6 +76,11 @@ public class UpdateLayout extends IUpdateLayout {
                 FileLoader.getInstance(currentAccount).cancelLoadFile(SharedConfig.pendingAppUpdate.document);
                 updateAppUpdateViews(currentAccount, true);
             } else {
+                java.io.File apk = FileLoader.getInstance(currentAccount).getPathToAttach(SharedConfig.pendingAppUpdate.document, true);
+                if (!org.telegram.messenger.MoggoUpdateVerifier.isGenuine(activity, apk)) {
+                    android.widget.Toast.makeText(activity, org.telegram.messenger.LocaleController.getString(org.telegram.messenger.R.string.MoggoUpdateNotGenuine), android.widget.Toast.LENGTH_LONG).show();
+                    return;
+                }
                 AndroidUtilities.openForView(SharedConfig.pendingAppUpdate.document, true, activity);
             }
         });

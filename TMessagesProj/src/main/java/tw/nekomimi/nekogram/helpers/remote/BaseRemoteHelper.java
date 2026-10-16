@@ -128,6 +128,10 @@ public abstract class BaseRemoteHelper {
                 if ((resolvedPeer.chats == null || resolvedPeer.chats.size() == 0)) {
                     return;
                 }
+                // The username may have changed hands: only trust the channel with the expected id.
+                if (resolvedPeer.chats.get(0).id != getChannelId()) {
+                    return;
+                }
                 req.peer = new TLRPC.TL_inputPeerChannel();
                 req.peer.channel_id = resolvedPeer.chats.get(0).id;
                 req.peer.access_hash = resolvedPeer.chats.get(0).access_hash;

@@ -3046,6 +3046,11 @@ public class ChatActivity extends BaseFragment implements
         final long chatId = arguments.getLong("chat_id", 0);
         final long userId = arguments.getLong("user_id", 0);
         final int encId = arguments.getInt("enc_id", 0);
+        // Moggogram decoy passcode: a hidden chat must not open from links, contacts, search or shares either.
+        final long requestedDialogId = chatId != 0 ? -chatId : userId != 0 ? userId : encId != 0 ? DialogObject.makeEncryptedDialogId(encId) : 0;
+        if (requestedDialogId != 0 && org.telegram.messenger.MoggoDecoy.isHidden(requestedDialogId)) {
+            return false;
+        }
         dialogFolderId = arguments.getInt("dialog_folder_id", 0);
         dialogFilterId = arguments.getInt("dialog_filter_id", 0);
         chatMode = arguments.getInt("chatMode", 0);

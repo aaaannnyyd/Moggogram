@@ -2952,6 +2952,9 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                 if (dialog.id == selfUserId) {
                     continue;
                 }
+                if (org.telegram.messenger.MoggoDecoy.isHidden(dialog.id)) {
+                    continue;
+                }
                 if (!DialogObject.isEncryptedDialog(dialog.id)) {
                     if (DialogObject.isUserDialog(dialog.id)) {
                         if (dialog.folder_id == 1) {

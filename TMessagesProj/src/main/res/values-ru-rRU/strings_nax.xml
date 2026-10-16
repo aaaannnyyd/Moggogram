@@ -340,6 +340,7 @@
     <string name="ImportAyuDBAlert">Текущая база данных сообщений будет заменена. После импорта приложение перезапустится.</string>
     <string name="DisableSwipeToNext">Отключить переход к следующему</string>
     <string name="MoggoReleasesChannel">Канал релизов</string>
+    <string name="MoggoUpdateNotGenuine">Файл обновления подписан не Moggogram — устанавливать не буду</string>
     <string name="MoggoForkOf">Форк Nagram X</string>
     <string name="RoundVideoSettings">Кружки</string>
     <string name="RoundVideoGeneral">Запись</string>
