@@ -1,92 +1,80 @@
-# Nagram X
+# Moggogram
 
-> [!IMPORTANT]
-> This project is archived and no longer maintained. No further updates, bug fixes, or support will be provided. The source code and existing releases remain available for reference and for anyone who wishes to continue development in a fork.
+Неофициальный Telegram-клиент для Android с открытым исходным кодом.
 
-## Archived Downloads
+> Unofficial open-source Telegram client for Android. A fork of [NagramX](https://github.com/risin42/NagramX), which itself is based on [Nagram](https://github.com/NextAlone/Nagram), [Nekogram](https://github.com/Nekogram/Nekogram) and the official [Telegram for Android](https://github.com/DrKLO/Telegram).
 
-Previously published versions remain available through:
+## Откуда он взялся
 
-* [Telegram Channel](https://t.me/NagramX)
-* [GitHub Releases](https://github.com/risin42/NagramX/releases)
+Moggogram — форк **[NagramX](https://github.com/risin42/NagramX)** от [risin42](https://github.com/risin42). NagramX был заархивирован автором 23.08.2026, и Moggogram продолжает его развитие: подтягивает новые версии Telegram и сохраняет все функции NagramX (сохранение удалённых сообщений, режим призрака и остальное).
 
-## Verify APK
+Цепочка происхождения:
 
-Official APKs use the following Android signing certificate:
+```
+DrKLO/Telegram  →  Nekogram  →  Nagram (NextAlone)  →  NagramX (risin42)  →  Moggogram
+```
 
-* Package name: `nu.gpu.nagram` / `nu.gpu.nagramx` (base version)
-* SHA-256: `0D:51:91:56:E8:0C:91:8C:28:C4:80:BF:D1:3F:31:6A:3B:3B:F7:22:DB:53:2F:AB:74:66:0E:C8:E5:C5:06:A1`
+- [Telegram for Android](https://github.com/DrKLO/Telegram) — официальный клиент, основа всего (GPL v2).
+- [Nekogram](https://github.com/Nekogram/Nekogram) — исходный сторонний клиент, от которого пошло дерево `tw.nekomimi.nekogram`.
+- [Nagram](https://github.com/NextAlone/Nagram) — форк Nekogram от NextAlone.
+- [NagramX](https://github.com/risin42/NagramX) — форк Nagram от risin42, на котором построен Moggogram.
 
-## Compilation Guide
+Moggogram не связан с Telegram FZ-LLC и с авторами перечисленных проектов.
 
-1. Clone the repository with its submodules:
+## Что добавлено поверх NagramX
+
+- Обновление до Telegram 12.10.6 (7112).
+- Свои пуш-уведомления: Telegram Web Push → свой шлюз ([push-gateway/](push-gateway)) → FCM; без Google Play Services — постоянное соединение.
+- Кружки: 720p, переключение камер и зум, выбор камеры при старте.
+- Скорость воспроизведения по тапу 1x → 3x, плавающий плеер голосовых и кружков, массовая загрузка медиа.
+- Локальные закрепы без лимита, обманный пароль, скрывающий выбранные чаты.
+- Статистика чата, живой архив чата, сохранение защищённого контента.
+- Значки рядом с именами других пользователей Moggogram.
+- @ugar — генерация картинок Gemini прямо из поля ввода.
+- Обновления из канала [@releases_channel](https://t.me/releases_channel), список изменений в приложении, отчёты о сбоях.
+
+Полный список — в истории коммитов ветки `moggogram`.
+
+## Сборка
+
+1. Клонировать с сабмодулями:
 
     ```bash
-    git clone --recursive --shallow-submodules https://github.com/risin42/NagramX.git NagramX
+    git clone --recursive --shallow-submodules https://github.com/aaaannnyyd/Moggogram.git
     ```
 
-    If you already cloned the repository without submodules, run:
+2. Получить `TELEGRAM_APP_ID` и `TELEGRAM_APP_HASH` на [my.telegram.org](https://my.telegram.org/auth) и создать в корне `local.properties`:
 
-    ```bash
-    git submodule update --init --recursive --depth=1
+    ```properties
+    TELEGRAM_APP_ID=<your_telegram_app_id>
+    TELEGRAM_APP_HASH=<your_telegram_app_hash>
     ```
 
-2. Obtain API credentials (`TELEGRAM_APP_ID` and `TELEGRAM_APP_HASH`) from [Telegram Developer Portal](https://my.telegram.org/auth). Create `local.properties` in the project root with:
+3. Для подписи — свой keystore и в `local.properties`:
 
-   ```properties
-   TELEGRAM_APP_ID=<your_telegram_app_id>
-   TELEGRAM_APP_HASH=<your_telegram_app_hash>
-   ```
+    ```properties
+    KEYSTORE_PASS=<your_keystore_password>
+    ALIAS_NAME=<your_alias_name>
+    ALIAS_PASS=<your_alias_password>
+    ```
 
-3. For APK signing: Replace `release.keystore` with your keystore and add signing configuration to `local.properties`:
+4. Для пушей — свой `TMessagesProj/google-services.json` и свой шлюз из `push-gateway/`.
 
-   ```properties
-   KEYSTORE_PASS=<your_keystore_password>
-   ALIAS_NAME=<your_alias_name>
-   ALIAS_PASS=<your_alias_password>
-   ```
+5. Открыть проект в Android Studio и собрать.
 
-4. For FCM support: Replace `TMessagesProj/google-services.json` with your own configuration file.
+## Лицензия
 
-5. Replace project-specific metadata:
+[GPL v3](LICENSE), как у NagramX. Код Telegram for Android распространяется под GPL v2 или более поздней версией.
 
-    - Set your Google Maps API key in the `com.google.android.maps.v2.API_KEY` meta-data entry in `TMessagesProj/src/main/AndroidManifest.xml`.
-    - Set `BaseRemoteHelper.CHANNEL_METADATA_ID` in `TMessagesProj/src/main/java/tw/nekomimi/nekogram/helpers/remote/BaseRemoteHelper.java` to your metadata channel's numeric ID, without the `-100` prefix.
+## Благодарности
 
-6. Open the project in Android Studio to start building.
-
-## GitHub Actions Build
-
-The workflow can be used from a fork of this repository.
-
-1. Replace `TMessagesProj/release.keystore` with your keystore file.
-
-2. Configure `local.properties` with the following:
-
-   ```properties
-   KEYSTORE_PASS=<your_keystore_password>
-   ALIAS_NAME=<your_alias_name>
-   ALIAS_PASS=<your_alias_password>
-   TELEGRAM_APP_ID=<your_telegram_app_id>
-   TELEGRAM_APP_HASH=<your_telegram_app_hash>
-   ```
-
-   Base64 encode the contents of this file.
-
-3. Configure GitHub Action secrets:
-   - `LOCAL_PROPERTIES`: Base64-encoded content from step 2
-   - `HELPER_BOT_TOKEN`: Telegram bot token from [@Botfather](https://t.me/Botfather) (e.g., `1111:abcd`)
-   - `HELPER_BOT_TARGET`: Primary Telegram chat ID (e.g., `777000`)
-   - `HELPER_BOT_CANARY_TARGET`: Chat ID for test builds and metadata (can match `HELPER_BOT_TARGET`)
-
-4. Trigger the Release Build workflow.
-
-## Acknowledgments
-
+- [NagramX](https://github.com/risin42/NagramX) — risin42
+- [Nagram](https://github.com/NextAlone/Nagram)
+- [Nekogram](https://github.com/Nekogram/Nekogram)
+- [Telegram for Android](https://github.com/DrKLO/Telegram)
 - [AyuGram](https://github.com/AyuGram/AyuGram4A)
 - [Cherrygram](https://github.com/arsLan4k1390/Cherrygram)
 - [Dr4iv3rNope](https://github.com/Dr4iv3rNope/NotSoAndroidAyuGram)
 - [exteraGram](https://github.com/exteraSquad/exteraGram)
-- [Nagram](https://github.com/NextAlone/Nagram)
-- [Nekogram](https://github.com/Nekogram/Nekogram)
 - [OctoGram](https://github.com/OctoGramApp/OctoGram)
+- [NagramXTurbo](https://github.com/temporaryna/NagramXTurbo) — образец разрешения конфликтов при обновлении Telegram
