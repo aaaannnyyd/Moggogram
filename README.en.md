@@ -23,7 +23,7 @@ Moggogram is not affiliated with Telegram FZ-LLC or with the authors of the proj
 
 ## What's added on top of NagramX
 
-- Updated to Telegram 12.10.6 (7112).
+- Updated to Telegram 13.0.2 (7175).
 - Own push notifications: Telegram Web Push → own gateway ([push-gateway/](push-gateway)) → FCM; without Google Play Services — a persistent connection.
 - Round videos: 720p, lens switching and zoom, choice of camera at start.
 - Tap-to-cycle playback speed 1x → 3x, floating voice/round player, bulk media download.
