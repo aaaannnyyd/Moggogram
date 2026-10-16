@@ -31,7 +31,7 @@ Moggogram is not affiliated with Telegram FZ-LLC or with the authors of the proj
 - Chat statistics, live chat archive, saving protected content.
 - Badges next to the names of other Moggogram users.
 - @ugar — Gemini image generation right from the message field.
-- Updates from the [@releases_channel](https://t.me/releases_channel) channel, in-app changelog, crash reports.
+- Update checks, in-app changelog, crash reports.
 
 The full list is in the commit history of the `moggogram` branch.
 
