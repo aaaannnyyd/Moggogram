@@ -73,6 +73,7 @@ import android.widget.FrameLayout;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.OptIn;
+import androidx.media3.common.util.UnstableApi;
 import androidx.exifinterface.media.ExifInterface;
 
 import androidx.media3.common.C;

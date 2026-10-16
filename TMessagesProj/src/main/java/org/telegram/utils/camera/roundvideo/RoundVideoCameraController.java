@@ -796,6 +796,8 @@ final class RoundVideoCameraController {
                         previewSize,
                         recordingSize,
                         maximumZoomRatio,
+                        minimumZoomRatio,
+                        lensStops,
                         isTorchAvailable()
                 ),
                 true
