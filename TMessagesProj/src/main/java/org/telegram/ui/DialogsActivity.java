@@ -219,6 +219,7 @@ import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.StealthModeAlert;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
+import org.telegram.ui.Wallet.WalletActivity;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.BulletinFactory;
@@ -14076,6 +14077,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (ApplicationLoader.applicationLoaderInstance != null) {
                 ApplicationLoader.applicationLoaderInstance.addItemOptions(io);
             }
+            if (getMessagesController().config.walletAvailable.get()) {
+                io.add(R.drawable.ic_gram, LocaleController.getString(R.string.WalletAttachMoney), () -> {
+                    presentFragment(new WalletActivity());
+                });
+            } else {
             TLRPC.TL_attachMenuBots menuBots = MediaDataController.getInstance(UserConfig.selectedAccount).getAttachMenuBots();
             if (launchActivity != null && menuBots != null && menuBots.bots != null && !menuBots.bots.isEmpty()) {
                 for (TLRPC.TL_attachMenuBot attachMenuBot : menuBots.bots) {
@@ -14099,6 +14105,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         }, () -> BotWebViewSheet.deleteBot(currentAccount, attachMenuBot.bot_id, null));
                     }
                 }
+            }
             }
             if (getUserConfig().showCallsTab || hideBottomNavigationBar) {
             io.add(R.drawable.msg_settings_old, getString(R.string.Settings), () -> {
