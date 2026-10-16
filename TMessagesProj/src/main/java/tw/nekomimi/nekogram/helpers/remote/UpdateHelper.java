@@ -30,8 +30,8 @@ public class UpdateHelper extends BaseRemoteHelper {
 
     // Moggogram releases are regular posts in the releases channel:
     // "#release moggogram <versionName> (<versionCode>) <abi>" + the APK attached.
-    private static final long RELEASES_CHANNEL_ID = 0L;
-    private static final String RELEASES_CHANNEL_NAME = "releases_channel";
+    private static final long RELEASES_CHANNEL_ID = BuildConfig.MOGGO_RELEASES_CHANNEL_ID;
+    private static final String RELEASES_CHANNEL_NAME = BuildConfig.MOGGO_RELEASES_CHANNEL;
     private static final String RELEASE_TAG = "#release moggogram";
     private static final Pattern RELEASE_HEADER = Pattern.compile("^#release moggogram (\\S+) \\((\\d+)\\)(?: (\\S+))?");
     private boolean updateAlways = false;
@@ -250,6 +250,10 @@ public class UpdateHelper extends BaseRemoteHelper {
 
     public void checkNewVersionAvailable(Delegate delegate, boolean updateAlways) {
         this.updateAlways = updateAlways;
+        if (RELEASES_CHANNEL_ID == 0) {
+            delegate.onTLResponse(null, "no releases channel");
+            return;
+        }
         load(delegate);
     }
 

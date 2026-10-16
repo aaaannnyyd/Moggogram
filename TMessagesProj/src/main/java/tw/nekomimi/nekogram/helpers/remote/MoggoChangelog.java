@@ -24,8 +24,8 @@ import java.util.ArrayList;
  */
 public class MoggoChangelog extends BaseRemoteHelper {
 
-    private static final long RELEASES_CHANNEL_ID = 0L;
-    private static final String RELEASES_CHANNEL_NAME = "releases_channel";
+    private static final long RELEASES_CHANNEL_ID = BuildConfig.MOGGO_RELEASES_CHANNEL_ID;
+    private static final String RELEASES_CHANNEL_NAME = BuildConfig.MOGGO_RELEASES_CHANNEL;
     private static final String KEY_SEEN = "changelog_seen_code";
 
     private static boolean requested;
@@ -36,7 +36,7 @@ public class MoggoChangelog extends BaseRemoteHelper {
     }
 
     public static void showIfUpdated(Activity activity) {
-        if (requested || activity == null) return;
+        if (requested || activity == null || RELEASES_CHANNEL_ID == 0) return;
         if (prefs().getInt(KEY_SEEN, 0) >= BuildConfig.VERSION_CODE) return;
         requested = true;
         MoggoChangelog helper = new MoggoChangelog();

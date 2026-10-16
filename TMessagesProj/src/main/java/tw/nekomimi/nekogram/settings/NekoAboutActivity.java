@@ -8,6 +8,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.browser.Browser;
@@ -25,7 +26,7 @@ public class NekoAboutActivity extends BaseNekoSettingsActivity {
     protected void updateRows() {
         super.updateRows();
 
-        releasesChannelRow = addRow();
+        releasesChannelRow = BuildConfig.MOGGO_RELEASES_CHANNEL.isEmpty() ? -1 : addRow();
         forkOfRow = addRow();
         datacenterStatusRow = addRow();
     }
@@ -38,7 +39,7 @@ public class NekoAboutActivity extends BaseNekoSettingsActivity {
     @Override
     protected void onItemClick(View view, int position, float x, float y) {
         if (position == releasesChannelRow) {
-            MessagesController.getInstance(currentAccount).openByUserName("releases_channel", NekoAboutActivity.this, 1);
+            MessagesController.getInstance(currentAccount).openByUserName(BuildConfig.MOGGO_RELEASES_CHANNEL, NekoAboutActivity.this, 1);
         } else if (position == forkOfRow) {
             Browser.openUrl(getParentActivity(), "https://github.com/risin42/NagramX");
         } else if (position == datacenterStatusRow) {
@@ -62,7 +63,7 @@ public class NekoAboutActivity extends BaseNekoSettingsActivity {
             if (holder.getItemViewType() == TYPE_SETTINGS) {
                 TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
                 if (position == releasesChannelRow) {
-                    textCell.setTextAndValue(getString(R.string.MoggoReleasesChannel), "@releases_channel", true);
+                    textCell.setTextAndValue(getString(R.string.MoggoReleasesChannel), "@" + BuildConfig.MOGGO_RELEASES_CHANNEL, true);
                 } else if (position == forkOfRow) {
                     textCell.setTextAndValue(getString(R.string.MoggoForkOf), "GitHub", true);
                 } else if (position == datacenterStatusRow) {

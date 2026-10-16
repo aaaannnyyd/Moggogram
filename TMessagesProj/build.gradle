@@ -135,6 +135,11 @@ android {
         buildConfigField 'String', 'MOGGO_PUSH_GATEWAY', '"' + moggoPushGateway + '"'
         def moggoBadgeBot = (properties != null ? properties.getProperty('MOGGO_BADGE_BOT') : null) ?: System.getenv('MOGGO_BADGE_BOT') ?: ''
         buildConfigField 'String', 'MOGGO_BADGE_BOT', '"' + moggoBadgeBot + '"'
+        // Releases channel (updates, changelog): username without @ and numeric id; empty = updates off.
+        def moggoReleasesChannel = (properties != null ? properties.getProperty('MOGGO_RELEASES_CHANNEL') : null) ?: System.getenv('MOGGO_RELEASES_CHANNEL') ?: ''
+        buildConfigField 'String', 'MOGGO_RELEASES_CHANNEL', '"' + moggoReleasesChannel + '"'
+        def moggoReleasesChannelId = (properties != null ? properties.getProperty('MOGGO_RELEASES_CHANNEL_ID') : null) ?: System.getenv('MOGGO_RELEASES_CHANNEL_ID') ?: '0'
+        buildConfigField 'long', 'MOGGO_RELEASES_CHANNEL_ID', moggoReleasesChannelId + 'L'
 
         externalNativeBuild {
             cmake {
