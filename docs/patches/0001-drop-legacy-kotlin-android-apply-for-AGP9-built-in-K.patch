@@ -1,37 +1,86 @@
-From 9f11505286dd784df469324025af79bebdb3b698 Mon Sep 17 00:00:00 2001
+From 09b6c97c0d691c50cd4541e1573995d4066d6f5c Mon Sep 17 00:00:00 2001
 From: temporaryna <temhbiumulllka@gmail.com>
-Date: Mon, 21 Sep 2026 03:48:00 +0300
+Date: Sun, 26 Oct 2026 00:20:00 +0300
 Subject: [PATCH] drop legacy kotlin-android apply for AGP9 built-in Kotlin
 
 ---
- libraries/common_ktx/build.gradle | 1 -
- libraries/ui_compose/build.gradle | 1 -
- 2 files changed, 2 deletions(-)
+ libraries/common_ktx/build.gradle  | 1 -
+ libraries/ui_compose/build.gradle  | 1 -
+ libraries/effect/build.gradle      | 5 -
+ libraries/exoplayer/build.gradle   | 1 -
+ libraries/test_utils/build.gradle  | 1 -
+ 5 files changed, 9 deletions(-)
 
 diff --git a/libraries/common_ktx/build.gradle b/libraries/common_ktx/build.gradle
-index c9523dfb9a..dbc8ed50dc 100644
+index 9db98f9211..0a81cfe594 100644
 --- a/libraries/common_ktx/build.gradle
 +++ b/libraries/common_ktx/build.gradle
-@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
  
- 
- apply from: "$gradle.ext.androidxMediaSettingsDir/common_library_config.gradle"
+ apply plugin: 'com.android.library'
+ apply from: "$gradle.ext.androidxMediaSettingsDir/common_config.gradle"
 -apply plugin: 'kotlin-android'
  
  android {
      namespace 'androidx.media3.common.ktx'
+diff --git a/libraries/effect/build.gradle b/libraries/effect/build.gradle
+index 8bff57855e..a1b86f19cf 100644
+--- a/libraries/effect/build.gradle
++++ b/libraries/effect/build.gradle
+@@ -13,7 +13,6 @@
+ // limitations under the License.
+ apply plugin: 'com.android.library'
+ apply from: "$gradle.ext.androidxMediaSettingsDir/common_config.gradle"
+-apply plugin: 'kotlin-android'
+ android {
+     namespace 'androidx.media3.effect'
+ 
+@@ -23,10 +22,6 @@ android {
+         }
+     }
+ 
+-    kotlinOptions {
+-        jvmTarget = '1.8'
+-    }
+-
+     sourceSets {
+         androidTest.assets.srcDir '../test_data/src/test/assets/'
+         test.assets.srcDir '../test_data/src/test/assets/'
+diff --git a/libraries/exoplayer/build.gradle b/libraries/exoplayer/build.gradle
+index dd0549199b..f5a47dee53 100644
+--- a/libraries/exoplayer/build.gradle
++++ b/libraries/exoplayer/build.gradle
+@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+ 
+ apply plugin: 'com.android.library'
+ apply from: "$gradle.ext.androidxMediaSettingsDir/common_config.gradle"
+-apply plugin: 'kotlin-android'
+ 
+ android {
+     namespace 'androidx.media3.exoplayer'
+diff --git a/libraries/test_utils/build.gradle b/libraries/test_utils/build.gradle
+index 524bacaf3e..d4cdf1c381 100644
+--- a/libraries/test_utils/build.gradle
++++ b/libraries/test_utils/build.gradle
+@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+ 
+ apply plugin: 'com.android.library'
+ apply from: "$gradle.ext.androidxMediaSettingsDir/common_config.gradle"
+-apply plugin: 'kotlin-android'
+ 
+ android {
+     namespace 'androidx.media3.test.utils'
 diff --git a/libraries/ui_compose/build.gradle b/libraries/ui_compose/build.gradle
-index 154d23423f..a16a676d72 100644
+index 5ca5217b74..ed5933a24e 100644
 --- a/libraries/ui_compose/build.gradle
 +++ b/libraries/ui_compose/build.gradle
-@@ -15,7 +15,6 @@
- import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
  
- apply from: "$gradle.ext.androidxMediaSettingsDir/common_library_config.gradle"
+ apply plugin: 'com.android.library'
+ apply from: "$gradle.ext.androidxMediaSettingsDir/common_config.gradle"
 -apply plugin: 'kotlin-android'
  apply plugin: 'org.jetbrains.kotlin.plugin.compose'
  
  android {
 -- 
 2.50.1 (Apple Git-155)
-
