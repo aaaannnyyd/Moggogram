@@ -201,8 +201,8 @@ public class PrivacyUsersActivity extends BaseFragment implements NotificationCe
         });
 
         if (blockedUsersActivity) {
-            ActionBarMenu menu = actionBar.createMenu();
-            ActionBarMenuItem otherItem = menu.addItem(0, R.drawable.ic_ab_other);
+            org.telegram.ui.ActionBar.SimpleActionBarMenu menu = simpleActionBar.createMenu();
+            org.telegram.ui.ActionBar.SimpleActionBarMenuItem otherItem = menu.addItem(0, R.drawable.ic_ab_other);
             otherItem.setContentDescription(getString(R.string.AccDescrMoreOptions));
             otherItem.addSubItem(unblockAll, getString(R.string.UnblockAll));
             otherItem.addSubItem(unblockDeleted, getString(R.string.UnblockDeleted));
